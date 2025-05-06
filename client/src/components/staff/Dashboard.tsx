@@ -238,14 +238,8 @@ const StaffDashboard: React.FC = () => {
 
   const handleMarkDelivered = async (clientId: string) => {
     try {
-      if (!user?._id) return;
-
-      const staffResponse = await staff.getByUserId(user._id);
-      const staffData = staffResponse.data;
-
       if (!staffData?._id) return;
-
-      await staff.markDailyDelivered(staffData._id, clientId, selectedDate);
+      await staff.markDailyDelivered(staffData._id, clientId);
       setNotification({
         message: "Successfully marked as delivered",
         type: "success",
@@ -282,20 +276,13 @@ const StaffDashboard: React.FC = () => {
     });
   };
 
-  const handleConfirmNotDelivered = async () => {
+  const handleMarkUndelivered = async () => {
     try {
-      if (!user?._id) return;
-
-      const staffResponse = await staff.getByUserId(user._id);
-      const staffData = staffResponse.data;
-
       if (!staffData?._id || !reasonDialog.clientId) return;
-
       await staff.markDailyUndelivered(
         staffData._id,
         reasonDialog.clientId,
-        reasonDialog.reason,
-        selectedDate
+        reasonDialog.reason
       );
       handleCloseReasonDialog();
       setNotification({
@@ -304,7 +291,7 @@ const StaffDashboard: React.FC = () => {
       });
       fetchDailyDeliveries();
     } catch (error: any) {
-      console.error("Error marking undelivered:", error);
+      console.error("Error marking non-delivery:", error);
       setNotification({
         message: error.message || "Failed to update delivery status",
         type: "error",
@@ -570,7 +557,7 @@ const StaffDashboard: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseReasonDialog}>Cancel</Button>
-          <Button onClick={handleConfirmNotDelivered} color="error">
+          <Button onClick={handleMarkUndelivered} color="error">
             Mark Not Delivered
           </Button>
         </DialogActions>

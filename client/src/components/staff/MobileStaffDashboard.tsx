@@ -53,13 +53,14 @@ const MobileStaffDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0]
   );
+  const [staffId, setStaffId] = useState<string | null>(null);
   const { user, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     if (user?._id) {
-      fetchAssignedClients();
+      fetchStaffData();
     } else {
       console.log("No user ID available for fetching clients");
       setError("User authentication issue. Please login again.");
@@ -67,7 +68,7 @@ const MobileStaffDashboard: React.FC = () => {
     }
   }, [user?._id, selectedDate]);
 
-  const fetchAssignedClients = async () => {
+  const fetchStaffData = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -77,10 +78,7 @@ const MobileStaffDashboard: React.FC = () => {
 
       const staffResponse = await staff.getByUserId(user._id);
       const staffData = staffResponse.data;
-
-      if (!staffData?._id) {
-        throw new Error("Could not retrieve staff information.");
-      }
+      setStaffId(staffData._id);
 
       // For admin view or when shift isn't required, get all clients
       if (user.role === "admin") {
@@ -175,6 +173,14 @@ const MobileStaffDashboard: React.FC = () => {
     client: Client,
     status: "Delivered" | "Not Delivered"
   ) => {
+    if (!staffId) {
+      setNotification({
+        message: "Staff ID not found. Please try logging in again.",
+        type: "error",
+      });
+      return;
+    }
+
     if (status === "Not Delivered") {
       setSelectedClient(client);
       setOpenDialog(true);
@@ -182,19 +188,12 @@ const MobileStaffDashboard: React.FC = () => {
     }
 
     try {
-      if (!user?._id) return;
-
-      const staffResponse = await staff.getByUserId(user._id);
-      await staff.markDailyDelivered(
-        staffResponse.data._id,
-        client._id,
-        selectedDate
-      );
+      await staff.markDailyDelivered(staffId, client._id);
       setNotification({
         message: "Successfully marked as delivered",
         type: "success",
       });
-      fetchAssignedClients();
+      fetchStaffData();
     } catch (error: any) {
       console.error("Error marking delivery:", error);
       setNotification({
@@ -205,15 +204,19 @@ const MobileStaffDashboard: React.FC = () => {
   };
 
   const confirmNotDelivered = async () => {
-    if (!selectedClient || !user?._id) return;
+    if (!selectedClient || !staffId) {
+      setNotification({
+        message: "Missing required information. Please try again.",
+        type: "error",
+      });
+      return;
+    }
 
     try {
-      const staffResponse = await staff.getByUserId(user._id);
       await staff.markDailyUndelivered(
-        staffResponse.data._id,
+        staffId,
         selectedClient._id,
-        notDeliveredReason,
-        selectedDate
+        notDeliveredReason
       );
       setOpenDialog(false);
       setNotDeliveredReason("");
@@ -221,9 +224,9 @@ const MobileStaffDashboard: React.FC = () => {
         message: "Successfully marked as not delivered",
         type: "success",
       });
-      fetchAssignedClients();
+      fetchStaffData();
     } catch (error: any) {
-      console.error("Error updating delivery status:", error);
+      console.error("Error marking non-delivery:", error);
       setNotification({
         message: error.message || "Failed to update delivery status",
         type: "error",
@@ -301,7 +304,7 @@ const MobileStaffDashboard: React.FC = () => {
   };
 
   const refreshData = () => {
-    fetchAssignedClients();
+    fetchStaffData();
   };
 
   const handleCloseNotification = () => {
@@ -322,8 +325,8 @@ const MobileStaffDashboard: React.FC = () => {
       setSelectedShift(shift);
       setShowShiftSelector(false);
 
-      // Refresh client list
-      fetchAssignedClients();
+      // Refresh data
+      fetchStaffData();
 
       setNotification({
         message: `Successfully selected ${shift} shift`,

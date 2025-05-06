@@ -16,14 +16,12 @@ export const getDashboardData = async (req: Request, res: Response) => {
       queryDate = new Date(req.query.date as string);
     }
 
-    // Create start and end date for the day (midnight to midnight)
-    // Using date-only strings to avoid time zone issues
+    // Create date range for the full day in UTC
     const dateString = queryDate.toISOString().split("T")[0]; // YYYY-MM-DD
+    const startDate = new Date(dateString);
+    const endDate = new Date(dateString);
+    endDate.setHours(23, 59, 59, 999);
 
-    const startDate = new Date(`${dateString}T00:00:00.000Z`);
-    const endDate = new Date(`${dateString}T23:59:59.999Z`);
-
-    // Log date range being used for querying
     console.log(
       `[DASHBOARD] Querying deliveries for date range: ${startDate.toISOString()} to ${endDate.toISOString()}`
     );
@@ -35,11 +33,11 @@ export const getDashboardData = async (req: Request, res: Response) => {
     const totalClients = await Client.countDocuments();
     const totalStaff = await Staff.countDocuments();
 
-    // Get today's and monthly totals
+    // Get today's and monthly totals with proper date handling
     const todaysTotals = await getTodaysDeliveryTotal(startDate, endDate);
     const monthlyTotals = await getMonthlyDeliveryTotal(queryDate);
 
-    // Get success rate
+    // Get success rate for today
     const deliverySuccessRate = await getDeliverySuccessRate(
       startDate,
       endDate
@@ -54,7 +52,7 @@ export const getDashboardData = async (req: Request, res: Response) => {
         ? totalAssignedQuantity[0].totalQuantity
         : 0;
 
-    // Get today's delivery records
+    // Get today's delivery records with shift filtering
     const deliveryRecords = await getTodaysDeliveryRecords(
       startDate,
       endDate,
@@ -110,16 +108,21 @@ export const getDashboardData = async (req: Request, res: Response) => {
  * Get today's total delivery quantity and revenue
  */
 const getTodaysDeliveryTotal = async (startDate: Date, endDate: Date) => {
-  // Log the input parameters for debugging
   console.log(
     `[DASHBOARD] Getting today's totals for ${startDate.toISOString()} to ${endDate.toISOString()}`
   );
 
+  // Ensure dates are set to midnight for consistent comparison
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+
   const result = await DailyDelivery.aggregate([
     {
       $match: {
-        date: { $gte: startDate, $lte: endDate },
-        // Use the enum value directly
+        date: {
+          $gte: startDate,
+          $lte: endDate,
+        },
         deliveryStatus: "Delivered",
       },
     },
@@ -137,7 +140,6 @@ const getTodaysDeliveryTotal = async (startDate: Date, endDate: Date) => {
       ? { quantity: result[0].totalQuantity, revenue: result[0].totalRevenue }
       : { quantity: 0, revenue: 0 };
 
-  // Log the result for debugging
   console.log(`[DASHBOARD] Today's totals: ${JSON.stringify(returnValue)}`);
   return returnValue;
 };
@@ -149,15 +151,16 @@ const getMonthlyDeliveryTotal = async (date: Date) => {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
 
+  // Create date range for the current month
   const firstDayStr = `${year}-${month.toString().padStart(2, "0")}-01`;
-  const lastDayStr = `${year}-${month.toString().padStart(2, "0")}-${new Date(
-    year,
-    month,
-    0
-  ).getDate()}`;
+  const lastDay = new Date(year, month, 0); // Last day of current month
+  const lastDayStr = `${year}-${month
+    .toString()
+    .padStart(2, "0")}-${lastDay.getDate()}`;
 
-  const firstDay = new Date(`${firstDayStr}T00:00:00.000Z`);
-  const lastDay = new Date(`${lastDayStr}T23:59:59.999Z`);
+  const firstDay = new Date(firstDayStr);
+  firstDay.setHours(0, 0, 0, 0);
+  lastDay.setHours(23, 59, 59, 999);
 
   console.log(
     `[DASHBOARD] Querying monthly deliveries: ${firstDay.toISOString()} to ${lastDay.toISOString()}`
@@ -170,7 +173,7 @@ const getMonthlyDeliveryTotal = async (date: Date) => {
           $gte: firstDay,
           $lte: lastDay,
         },
-        deliveryStatus: "Delivered", // Fixed case to match enum
+        deliveryStatus: "Delivered",
       },
     },
     {
@@ -184,7 +187,10 @@ const getMonthlyDeliveryTotal = async (date: Date) => {
 
   const returnValue =
     result.length > 0
-      ? { quantity: result[0].totalQuantity, revenue: result[0].totalRevenue }
+      ? {
+          quantity: result[0].totalQuantity || 0,
+          revenue: result[0].totalRevenue || 0,
+        }
       : { quantity: 0, revenue: 0 };
 
   console.log(`[DASHBOARD] Monthly totals: ${JSON.stringify(returnValue)}`);
@@ -199,20 +205,46 @@ const getDeliverySuccessRate = async (startDate: Date, endDate: Date) => {
     `[DASHBOARD] Querying success rate between ${startDate.toISOString()} and ${endDate.toISOString()}`
   );
 
-  const totalDeliveries = await DailyDelivery.countDocuments({
-    date: { $gte: startDate, $lte: endDate },
-  });
-  const deliveredCount = await DailyDelivery.countDocuments({
-    date: { $gte: startDate, $lte: endDate },
-    deliveryStatus: "Delivered",
-  });
+  // Set consistent times for date comparison
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
 
-  const result = {
-    total: totalDeliveries,
-    delivered: deliveredCount,
-    successRate:
-      totalDeliveries > 0 ? (deliveredCount / totalDeliveries) * 100 : 0,
-  };
+  const aggregateResult = await DailyDelivery.aggregate([
+    {
+      $match: {
+        date: { $gte: startDate, $lte: endDate },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalDeliveries: { $sum: 1 },
+        delivered: {
+          $sum: {
+            $cond: [{ $eq: ["$deliveryStatus", "Delivered"] }, 1, 0],
+          },
+        },
+      },
+    },
+  ]);
+
+  const result =
+    aggregateResult.length > 0
+      ? {
+          total: aggregateResult[0].totalDeliveries,
+          delivered: aggregateResult[0].delivered,
+          successRate:
+            aggregateResult[0].totalDeliveries > 0
+              ? (aggregateResult[0].delivered /
+                  aggregateResult[0].totalDeliveries) *
+                100
+              : 0,
+        }
+      : {
+          total: 0,
+          delivered: 0,
+          successRate: 0,
+        };
 
   console.log(`[DASHBOARD] Success rate results: ${JSON.stringify(result)}`);
   return result;
@@ -472,7 +504,7 @@ export const getDeliveryTrends = async (req: Request, res: Response) => {
           totalDeliveries: { $sum: 1 },
           successfulDeliveries: {
             $sum: {
-              $cond: [{ $eq: ["$deliveryStatus", "delivered"] }, 1, 0],
+              $cond: [{ $eq: ["$deliveryStatus", "Delivered"] }, 1, 0],
             },
           },
           totalQuantity: { $sum: "$quantity" },
@@ -543,7 +575,7 @@ export const getNonDeliveryReasons = async (req: Request, res: Response) => {
       {
         $match: {
           date: { $gte: start, $lte: end },
-          deliveryStatus: "not_delivered",
+          deliveryStatus: "Not Delivered",
           notes: { $exists: true, $ne: "" },
         },
       },
@@ -673,6 +705,10 @@ const getTodaysDeliveryRecords = async (
   endDate: Date,
   shiftFilter?: string
 ) => {
+  // Ensure proper date comparison
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+
   const matchCriteria: any = {
     date: { $gte: startDate, $lte: endDate },
   };
@@ -681,22 +717,12 @@ const getTodaysDeliveryRecords = async (
     matchCriteria.shift = shiftFilter;
   }
 
-  // Get the latest delivery record for each client on this date
   const deliveryRecords = await DailyDelivery.aggregate([
     {
       $match: matchCriteria,
     },
     {
-      $sort: { date: -1 }, // Sort by date descending to get latest first
-    },
-    {
-      $group: {
-        _id: "$clientId",
-        doc: { $first: "$$ROOT" }, // Take the first (latest) record for each client
-      },
-    },
-    {
-      $replaceRoot: { newRoot: "$doc" },
+      $sort: { date: -1 },
     },
     {
       $lookup: {
@@ -726,15 +752,18 @@ const getTodaysDeliveryRecords = async (
         preserveNullAndEmptyArrays: true,
       },
     },
+    {
+      $project: {
+        clientName: { $ifNull: ["$clientInfo.name", "Unknown"] },
+        location: { $ifNull: ["$clientInfo.location", ""] },
+        staff: { $ifNull: ["$staffInfo.name", "Unknown"] },
+        shift: 1,
+        quantity: 1,
+        price: 1,
+        status: "$deliveryStatus",
+      },
+    },
   ]);
 
-  return deliveryRecords.map((record) => ({
-    clientName: record.clientInfo?.name || "Unknown",
-    location: record.clientInfo?.location || "",
-    staff: record.staffInfo?.name || "Unknown",
-    shift: record.shift,
-    quantity: record.quantity,
-    price: record.price,
-    status: record.deliveryStatus,
-  }));
+  return deliveryRecords;
 };

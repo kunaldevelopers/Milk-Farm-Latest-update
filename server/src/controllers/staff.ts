@@ -740,6 +740,11 @@ export const getSessionByDate = async (req: Request, res: Response) => {
 export const markClientDailyDelivered = async (req: Request, res: Response) => {
   try {
     const { id: staffId, clientId } = req.params;
+    const { shift } = req.body;
+
+    if (!shift) {
+      return res.status(400).json({ message: "Shift is required" });
+    }
 
     if (
       !mongoose.Types.ObjectId.isValid(staffId) ||
@@ -765,31 +770,14 @@ export const markClientDailyDelivered = async (req: Request, res: Response) => {
         (id) => id.toString() === (client._id as Types.ObjectId).toString()
       )
     ) {
-      return res
-        .status(403)
-        .json({ message: "Client is not assigned to this staff member" });
-    }
-
-    // Set the date to today with time set to midnight
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Get the staff's current shift from their session
-    const staffSession = await StaffSession.findOne({ staffId, date: today });
-    if (!staffSession) {
-      return res
-        .status(400)
-        .json({ message: "Staff hasn't selected a shift for today" });
-    }
-
-    // Check if client's shift matches staff's current session
-    if (client.timeShift !== staffSession.shift) {
       return res.status(400).json({
-        message: `Client is in ${client.timeShift} shift, but staff is working ${staffSession.shift} shift`,
-        clientShift: client.timeShift,
-        staffShift: staffSession.shift,
+        message: "This client is not assigned to this staff member",
       });
     }
+
+    // Get today's date at midnight for consistent comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Get delivery status values from settings
     const { getSetting } = await import("../models/Settings");
@@ -801,26 +789,32 @@ export const markClientDailyDelivered = async (req: Request, res: Response) => {
     console.log(
       `[DEBUG] Marking client ${clientId} as delivered with status: "Delivered"`
     );
+
     const dailyDelivery = await DailyDelivery.findOneAndUpdate(
-      { clientId, date: today },
       {
         clientId,
         staffId,
-        date: today,
-        shift: client.timeShift,
-        deliveryStatus: "Delivered",
-        quantity: client.quantity,
-        price: client.quantity * client.pricePerLitre,
+        date: {
+          $gte: today,
+          $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+        },
       },
-      { upsert: true, new: true }
-    );
-
-    console.log(
-      `[DEBUG] Created/updated delivery record: ${JSON.stringify({
-        id: dailyDelivery._id,
-        status: dailyDelivery.deliveryStatus,
-        date: dailyDelivery.date,
-      })}`
+      {
+        $set: {
+          clientId,
+          staffId,
+          date: today,
+          shift,
+          deliveryStatus: "Delivered",
+          quantity: client.quantity,
+          price: client.quantity * client.pricePerLitre,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
     );
 
     // Update the client's delivery status field
@@ -834,12 +828,6 @@ export const markClientDailyDelivered = async (req: Request, res: Response) => {
     });
 
     await client.save();
-
-    console.log(
-      `Delivery marked for client ${clientId} by staff ${staffId} on ${
-        today.toISOString().split("T")[0]
-      }`
-    );
 
     res.json({
       message: "Delivery marked as completed",
@@ -860,7 +848,17 @@ export const markClientDailyUndelivered = async (
 ) => {
   try {
     const { id: staffId, clientId } = req.params;
-    const { reason } = req.body;
+    const { reason, shift } = req.body;
+
+    if (!shift) {
+      return res.status(400).json({ message: "Shift is required" });
+    }
+
+    if (!reason) {
+      return res
+        .status(400)
+        .json({ message: "Reason is required for non-delivery" });
+    }
 
     if (
       !mongoose.Types.ObjectId.isValid(staffId) ||
@@ -886,29 +884,14 @@ export const markClientDailyUndelivered = async (
         (id) => id.toString() === (client._id as Types.ObjectId).toString()
       )
     ) {
-      return res
-        .status(403)
-        .json({ message: "Client is not assigned to this staff member" });
-    }
-
-    // Set the date to today with time set to midnight
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Get the staff's current shift from their session
-    const staffSession = await StaffSession.findOne({ staffId, date: today });
-    if (!staffSession) {
-      return res
-        .status(400)
-        .json({ message: "Staff hasn't selected a shift for today" });
-    }
-
-    // Check if client's shift matches staff's current session
-    if (client.timeShift !== staffSession.shift) {
       return res.status(400).json({
-        message: `Client is in ${client.timeShift} shift, but staff is working ${staffSession.shift} shift`,
+        message: "This client is not assigned to this staff member",
       });
     }
+
+    // Get today's date at midnight for consistent comparison
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     // Get delivery status values from settings
     const { getSetting } = await import("../models/Settings");
@@ -917,20 +900,33 @@ export const markClientDailyUndelivered = async (
       deliveryStatuses.find((s: string) => s === "Not Delivered") ||
       "Not Delivered";
 
-    // Record the non-delivery for today - IMPORTANT: Using consistent value "not_delivered" for dashboard queries
+    // Record the non-delivery for today
     const dailyDelivery = await DailyDelivery.findOneAndUpdate(
-      { clientId, date: today },
       {
         clientId,
         staffId,
-        date: today,
-        shift: client.timeShift,
-        deliveryStatus: "Not Delivered",
-        quantity: 0,
-        price: 0,
-        notes: reason,
+        date: {
+          $gte: today,
+          $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+        },
       },
-      { upsert: true, new: true }
+      {
+        $set: {
+          clientId,
+          staffId,
+          date: today,
+          shift,
+          deliveryStatus: "Not Delivered",
+          quantity: 0,
+          price: 0,
+          notes: reason,
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
     );
 
     // Update the client's delivery status field
@@ -940,25 +936,19 @@ export const markClientDailyUndelivered = async (
     // Add to client's delivery history
     client.deliveryHistory.push({
       date: today,
-      status: "Not Delivered",
+      status: notDeliveredStatus,
       quantity: 0,
       reason,
     });
 
     await client.save();
 
-    console.log(
-      `Non-delivery marked for client ${clientId} by staff ${staffId} on ${
-        today.toISOString().split("T")[0]
-      }`
-    );
-
     res.json({
-      message: "Delivery marked as not completed",
+      message: "Client marked as not delivered",
       dailyDelivery,
     });
   } catch (error) {
-    console.error("Error marking client daily non-delivery:", error);
+    console.error("Error marking client as not delivered:", error);
     res.status(500).json({
       message: "Error updating delivery status",
       error: error instanceof Error ? error.message : "Unknown error",

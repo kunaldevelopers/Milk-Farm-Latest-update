@@ -213,24 +213,23 @@ export const staff = {
   },
   getDailyDeliveries: (staffId: string, date: string) =>
     api.get(`/staff/${staffId}/daily-deliveries?date=${date}`),
-  markDailyDelivered: (staffId: string, clientId: string, date: string) =>
-    api.post(`/staff/daily-deliveries`, {
-      staffId,
-      clientId,
-      date,
-    }),
-  markDailyUndelivered: (
-    staffId: string,
-    clientId: string,
-    reason: string,
-    date: string
-  ) =>
-    api.post(`/staff/daily-undelivered`, {
-      staffId,
-      clientId,
+  markDailyDelivered: (staffId: string, clientId: string) => {
+    console.log(
+      `[API DEBUG] markDailyDelivered - Staff ${staffId} marking client ${clientId} as delivered`
+    );
+    return api.post(`/staff/${staffId}/client/${clientId}/daily-delivered`, {
+      shift: localStorage.getItem("selectedShift") || "AM",
+    });
+  },
+  markDailyUndelivered: (staffId: string, clientId: string, reason: string) => {
+    console.log(
+      `[API DEBUG] markDailyUndelivered - Staff ${staffId} marking client ${clientId} as not delivered`
+    );
+    return api.post(`/staff/${staffId}/client/${clientId}/daily-undelivered`, {
       reason,
-      date,
-    }),
+      shift: localStorage.getItem("selectedShift") || "AM",
+    });
+  },
 };
 
 // Add Daily Deliveries API
