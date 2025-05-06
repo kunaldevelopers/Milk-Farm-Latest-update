@@ -1,0 +1,104 @@
+/* Dairy Palette */
+:root {
+  --milk-white: #f5f6f5;
+  --creamy-beige: #ede4d7;
+  --pasture-green: #a8d5ba;
+  --sky-blue: #6ab7d6;
+  --slate-gray: #4a5e6a;
+  --sunset-orange: #f4a261;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  background-color: var(--creamy-beige);
+  min-height: 100vh;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  transition: width 0.3s ease;
+  z-index: 1000;
+}
+
+.admin-sidebar.collapsed {
+  width: 80px;
+}
+
+.admin-main-content {
+  margin-left: 250px;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+  background-color: var(--milk-white);
+  min-height: 100vh;
+}
+
+.admin-main-content.collapsed {
+  margin-left: 80px;
+}
+
+/* Cards */
+.dashboard-card {
+  background-color: var(--milk-white);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Tables */
+.dashboard-table {
+  background-color: var(--milk-white);
+}
+
+.dashboard-table th {
+  background-color: var(--creamy-beige);
+  color: var(--slate-gray);
+}
+
+.dashboard-table tr:nth-child(even) {
+  background-color: var(--creamy-beige);
+}
+
+.dashboard-table tr.priority {
+  background-color: var(--sunset-orange) !important;
+  color: var(--milk-white);
+}
+
+/* Buttons */
+.btn-dashboard-primary {
+  background-color: var(--pasture-green) !important;
+  border-color: var(--pasture-green) !important;
+  color: white !important;
+}
+
+.btn-dashboard-primary:hover {
+  background-color: #90c4a6 !important;
+}
+
+.btn-dashboard-secondary {
+  background-color: var(--sky-blue) !important;
+  border-color: var(--sky-blue) !important;
+  color: white !important;
+}
+
+.btn-dashboard-warning {
+  background-color: var(--sunset-orange) !important;
+  border-color: var(--sunset-orange) !important;
+  color: white !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 80px;
+  }
+  
+  .admin-main-content {
+    margin-left: 80px;
+  }
+}

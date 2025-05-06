@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Milk Farm CRM - Admin Panel</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <style>
+      /* Dairy Palette */
+      :root {
+        --milk-white: #f5f6f5;
+        --creamy-beige: #ede4d7;
+        --pasture-green: #a8d5ba;
+        --sky-blue: #6ab7d6;
+        --slate-gray: #4a5e6a;
+        --sunset-orange: #f4a261;
+      }
+
+      body {
+        background-color: var(--milk-white);
+        color: var(--slate-gray);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        background-color: var(--creamy-beige);
+        min-height: 100vh;
+        padding: 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        transition: width 0.3s ease;
+        z-index: 1000;
+      }
+
+      .sidebar.collapsed {
+        width: 80px;
+      }
+
+      .sidebar .nav-link {
+        color: var(--slate-gray);
+        padding: 10px;
+        border-radius: 5px;
+        transition: background 0.3s;
+      }
+
+      .sidebar .nav-link:hover,
+      .sidebar .nav-link.active {
+        background-color: var(--pasture-green);
+        color: var(--milk-white);
+      }
+
+      .sidebar .nav-link i {
+        margin-right: 10px;
+      }
+
+      .sidebar.collapsed .nav-link span,
+      .sidebar.collapsed .sidebar-title {
+        display: none;
+      }
+
+      /* Main Content */
+      .main-content {
+        margin-left: 250px;
+        padding: 20px;
+        transition: margin-left 0.3s ease;
+      }
+
+      .main-content.collapsed {
+        margin-left: 80px;
+      }
+
+      /* Cards */
+      .card {
+        background-color: var(--milk-white);
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      /* Buttons */
+      .btn-primary {
+        background-color: var(--pasture-green);
+        border-color: var(--pasture-green);
+      }
+
+      .btn-primary:hover {
+        background-color: #90c4a6;
+      }
+
+      .btn-secondary {
+        background-color: var(--sky-blue);
+        border-color: var(--sky-blue);
+      }
+
+      .btn-secondary:hover {
+        background-color: #5aa3c0;
+      }
+
+      .btn-warning {
+        background-color: var(--sunset-orange);
+        border-color: var(--sunset-orange);
+        color: var(--milk-white);
+      }
+
+      .btn-warning:hover {
+        background-color: #e08e4e;
+      }
+
+      /* Table */
+      .table {
+        background-color: var(--milk-white);
+      }
+
+      .table th {
+        background-color: var(--creamy-beige);
+        color: var(--slate-gray);
+      }
+
+      .table tr:nth-child(even) {
+        background-color: var(--creamy-beige);
+      }
+
+      .table tr.priority {
+        background-color: var(--sunset-orange) !important;
+        color: var(--milk-white);
+      }
+
+      /* Modal */
+      .modal-content {
+        background-color: var(--milk-white);
+        border-radius: 10px;
+      }
+
+      /* Calendar Placeholder */
+      .calendar-placeholder {
+        max-width: 300px;
+        padding: 15px;
+        background-color: var(--creamy-beige);
+        border-radius: 5px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 80px;
+        }
+
+        .main-content {
+          margin-left: 80px;
+        }
+
+        .table {
+          font-size: 0.9rem;
+        }
+
+        .calendar-placeholder {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar (Navigation for all Admin Panel pages) -->
+    <!-- Syncs with: All pages (Dashboard, Clients, Staff, Assign, Settings) -->
+    <div class="sidebar" id="sidebar">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="sidebar-title">Milk Farm CRM</h4>
+        <button class="btn btn-link text-dark" onclick="toggleSidebar()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a
+            class="nav-link active"
+            href="#"
+            onclick="showSection('dashboard')"
+          >
+            <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="showSection('clients')">
+            <i class="fas fa-users"></i><span>Clients List</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="showSection('staff')">
+            <i class="fas fa-user-tie"></i><span>Staff Management</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="showSection('assign')">
+            <i class="fas fa-tasks"></i><span>Assign Staff</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="showSection('settings')">
+            <i class="fas fa-cog"></i><span>Settings</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+      <!-- Dashboard Section -->
+      <!-- Syncs with: Sales data (monthly sales report) -->
+      <div id="dashboard" class="section">
+        <h2 class="mb-4">Dashboard</h2>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card p-3 calendar-placeholder">
+              <h5>Monthly Sales Calendar</h5>
+              <input
+                type="month"
+                class="form-control mb-3"
+                id="monthPicker"
+                onchange="updateSales()"
+              />
+              <p>Pick a month to view sales.</p>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <div class="card p-3">
+              <h5>Sales Report</h5>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Month</th>
+                      <th>Client</th>
+                      <th>Quantity</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sales-table">
+                    <!-- Populated by JS with demo sales data -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clients List Section -->
+      <!-- Syncs with: Client data (name, number, etc.) -->
+      <div id="clients" class="section d-none">
+        <h2 class="mb-4">Clients List</h2>
+        <button
+          class="btn btn-primary mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#addClientModal"
+        >
+          Add Client
+        </button>
+        <div class="card p-3">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Number</th>
+                  <th>Location</th>
+                  <th>ID</th>
+                  <th>Time Shift</th>
+                  <th>Price/Litre</th>
+                  <th>Quantity</th>
+                  <th>Priority</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="clients-table">
+                <!-- Populated by JS with demo client data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Client Modal -->
+        <div class="modal fade" id="addClientModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Add Client</h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <form id="add-client-form">
+                  <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="name"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Number</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="number"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Location</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="location"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">ID</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="id"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Time Shift</label>
+                    <select class="form-control" name="timeShift" required>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Price per Litre</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      name="pricePerLitre"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Quantity (Litres)</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      name="quantity"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-check-label">Priority</label>
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      name="priorityStatus"
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    Add Client
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Management Section -->
+      <!-- Syncs with: Staff data (name, shift, etc.) -->
+      <div id="staff" class="section d-none">
+        <h2 class="mb-4">Staff Management</h2>
+        <button
+          class="btn btn-primary mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#addStaffModal"
+        >
+          Add Staff
+        </button>
+        <div class="card p-3">
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Shift</th>
+                  <th>ID</th>
+                  <th>Location</th>
+                  <th>Contact</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="staff-table">
+                <!-- Populated by JS with demo staff data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Staff Modal -->
+        <div class="modal fade" id="addStaffModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Add Staff</h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <form id="add-staff-form">
+                  <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="name"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Shift</label>
+                    <select class="form-control" name="shift" required>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">ID</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="id"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Location</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="location"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Contact Number</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="contactNumber"
+                      required
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    Add Staff
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Staff Modal -->
+        <div class="modal fade" id="editStaffModal" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Edit Staff</h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <form id="edit-staff-form">
+                  <input type="hidden" name="id" />
+                  <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="name"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Shift</label>
+                    <select class="form-control" name="shift" required>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Location</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="location"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Contact Number</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="contactNumber"
+                      required
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    Save Changes
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assign Staff Section -->
+      <!-- Syncs with: Assignment data (staff-client mappings) -->
+      <div id="assign" class="section d-none">
+        <h2 class="mb-4">Assign Staff</h2>
+        <div class="card p-3 mb-3">
+          <h5>Assign Client to Staff</h5>
+          <form id="assign-form">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Staff</label>
+                <select class="form-control" name="staffId" required>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Client</label>
+                <select class="form-control" name="clientId" required>
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Quantity (Litres)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="quantity"
+                  required
+                />
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Assign</button>
+          </form>
+        </div>
+        <div class="card p-3">
+          <h5>Assignments</h5>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Staff</th>
+                  <th>Client</th>
+                  <th>Quantity</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="assignments-table">
+                <!-- Populated by JS with demo assignment data -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <!-- Syncs with: User profile data (photo, logo, password) -->
+      <div id="settings" class="section d-none">
+        <h2 class="mb-4">Settings</h2>
+        <div class="card p-3 mb-3">
+          <h5>Profile</h5>
+          <form id="profile-form">
+            <div class="mb-3">
+              <label class="form-label">Profile Photo</label>
+              <input
+                type="text"
+                class="form-control"
+                name="profilePhoto"
+                placeholder="Enter URL"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Logo</label>
+              <input
+                type="text"
+                class="form-control"
+                name="logo"
+                placeholder="Enter URL"
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">
+              Update Profile
+            </button>
+          </form>
+        </div>
+        <div class="card p-3">
+          <h5>Change Password</h5>
+          <form id="password-form">
+            <div class="mb-3">
+              <label class="form-label">Old Password</label>
+              <input
+                type="password"
+                class="form-control"
+                name="oldPassword"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input
+                type="password"
+                class="form-control"
+                name="newPassword"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">
+              Change Password
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // --- DEMO DATA START ---
+      // Demo data to show how client/staff/assignments/sales will look
+      let clients = [
+        {
+          id: "C001",
+          name: "Surendra Kumar",
+          number: "1234567890",
+          location: "Kokar Ranchi",
+          clientId: "C001",
+          timeShift: "AM",
+          pricePerLitre: 2.5,
+          quantity: 10,
+          priorityStatus: false,
+        },
+        {
+          id: "C002",
+          name: "Bhusan Singh",
+          number: "0987654321",
+          location: "Ranchi JUnction",
+          clientId: "C002",
+          timeShift: "PM",
+          pricePerLitre: 2.7,
+          quantity: 15,
+          priorityStatus: false,
+        },
+        {
+          id: "C003",
+          name: "Sunita Sharma",
+          number: "1112223334",
+          location: "Dhurwa Daam",
+          clientId: "C003",
+          timeShift: "AM",
+          pricePerLitre: 3.0,
+          quantity: 20,
+          priorityStatus: true,
+        },
+      ];
+
+      let staff = [
+        {
+          id: "S001",
+          name: "Ashif Javed",
+          shift: "AM",
+          staffId: "S001",
+          location: "Lalpur",
+          contactNumber: "5556667778",
+        },
+        {
+          id: "S002",
+          name: "Sunil Kumar",
+          shift: "PM",
+          staffId: "S002",
+          location: "Argora Chowk",
+          contactNumber: "8889990001",
+        },
+      ];
+
+      let assignments = [
+        {
+          id: "A001",
+          staffId: "S001",
+          clientId: "C001",
+          quantity: 10,
+          date: "2025-04-01",
+        },
+        {
+          id: "A002",
+          staffId: "S002",
+          clientId: "C002",
+          quantity: 15,
+          date: "2025-04-02",
+        },
+      ];
+
+      let sales = [
+        {
+          id: "S001",
+          date: "2025-04-01",
+          time: "AM",
+          month: "April",
+          client: "Surendra Kumar",
+          quantity: 10,
+          total: 25,
+        },
+        {
+          id: "S002",
+          date: "2025-04-02",
+          time: "PM",
+          month: "April",
+          client: "Bhusan Singh",
+          quantity: 15,
+          total: 40.5,
+        },
+      ];
+      // --- DEMO DATA END ---
+
+      // Toggle Sidebar
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const mainContent = document.getElementById("main-content");
+        sidebar.classList.toggle("collapsed");
+        mainContent.classList.toggle("collapsed");
+      }
+
+      // Show Section
+      function showSection(sectionId) {
+        document.querySelectorAll(".section").forEach((section) => {
+          section.classList.add("d-none");
+        });
+        document.getElementById(sectionId).classList.remove("d-none");
+        document.querySelectorAll(".sidebar .nav-link").forEach((link) => {
+          link.classList.remove("active");
+        });
+        document
+          .querySelector(
+            `.sidebar .nav-link[onclick="showSection('${sectionId}')"]`
+          )
+          .classList.add("active");
+      }
+
+      // Populate Clients Table
+      function populateClients() {
+        const table = document.getElementById("clients-table");
+        table.innerHTML = "";
+        clients.forEach((client, index) => {
+          const row = document.createElement("tr");
+          if (client.priorityStatus && index === 2)
+            row.classList.add("priority");
+          row.innerHTML = `
+          <td>${client.name}</td>
+          <td>${client.number}</td>
+          <td>${client.location}</td>
+          <td>${client.clientId}</td>
+          <td>${client.timeShift}</td>
+          <td>₹${client.pricePerLitre.toFixed(2)}</td>
+          <td>${client.quantity}</td>
+          <td>${client.priorityStatus ? "Yes" : "No"}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="generateBill('${
+              client.id
+            }')">Bill</button>
+            <button class="btn btn-warning btn-sm" onclick="deleteClient('${
+              client.id
+            }')">Delete</button>
+          </td>
+        `;
+          table.appendChild(row);
+        });
+      }
+
+      // Populate Staff Table
+      function populateStaff() {
+        const table = document.getElementById("staff-table");
+        table.innerHTML = "";
+        staff.forEach((s) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${s.name}</td>
+          <td>${s.shift}</td>
+          <td>${s.staffId}</td>
+          <td>${s.location}</td>
+          <td>${s.contactNumber}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="editStaff('${s.id}')" data-bs-toggle="modal" data-bs-target="#editStaffModal">Edit</button>
+            <button class="btn btn-warning btn-sm" onclick="deleteStaff('${s.id}')">Delete</button>
+          </td>
+        `;
+          table.appendChild(row);
+        });
+      }
+
+      // Populate Assignments Table and Dropdowns
+      function populateAssignments() {
+        const table = document.getElementById("assignments-table");
+        table.innerHTML = "";
+        assignments.forEach((a) => {
+          const s = staff.find((s) => s.id === a.staffId);
+          const c = clients.find((c) => c.id === a.clientId);
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${s ? s.name : "Unknown"}</td>
+          <td>${c ? c.name : "Unknown"}</td>
+          <td>${a.quantity}</td>
+          <td>${a.date}</td>
+        `;
+          table.appendChild(row);
+        });
+
+        // Populate dropdowns
+        const staffSelect = document.querySelector(
+          '#assign-form [name="staffId"]'
+        );
+        const clientSelect = document.querySelector(
+          '#assign-form [name="clientId"]'
+        );
+        staffSelect.innerHTML =
+          '<option value="">Select Staff</option>' +
+          staff
+            .map((s) => `<option value="${s.id}">${s.name}</option>`)
+            .join("");
+        clientSelect.innerHTML =
+          '<option value="">Select Client</option>' +
+          clients
+            .map((c) => `<option value="${c.id}">${c.name}</option>`)
+            .join("");
+      }
+
+      // Populate Sales Table
+      function populateSales() {
+        const table = document.getElementById("sales-table");
+        table.innerHTML = "";
+        sales.forEach((s) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${s.date}</td>
+          <td>${s.time}</td>
+          <td>${s.month}</td>
+          <td>${s.client}</td>
+          <td>${s.quantity}</td>
+          <td>₹${s.total.toFixed(2)}</td>
+        `;
+          table.appendChild(row);
+        });
+      }
+
+      // Form Handlers
+      document
+        .getElementById("add-client-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const newClient = {
+            id: `C${clients.length + 1}`.padStart(4, "0"),
+            name: formData.get("name"),
+            number: formData.get("number"),
+            location: formData.get("location"),
+            clientId: formData.get("id"),
+            timeShift: formData.get("timeShift"),
+            pricePerLitre: parseFloat(formData.get("pricePerLitre")),
+            quantity: parseInt(formData.get("quantity")),
+            priorityStatus: formData.get("priorityStatus") === "on",
+          };
+          clients.push(newClient);
+          populateClients();
+          bootstrap.Modal.getInstance(
+            document.getElementById("addClientModal")
+          ).hide();
+          e.target.reset();
+          // Later: Sync with /api/clients POST
+        });
+
+      document
+        .getElementById("add-staff-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const newStaff = {
+            id: `S${staff.length + 1}`.padStart(4, "0"),
+            name: formData.get("name"),
+            shift: formData.get("shift"),
+            staffId: formData.get("id"),
+            location: formData.get("location"),
+            contactNumber: formData.get("contactNumber"),
+          };
+          staff.push(newStaff);
+          populateStaff();
+          populateAssignments(); // Update dropdowns
+          bootstrap.Modal.getInstance(
+            document.getElementById("addStaffModal")
+          ).hide();
+          e.target.reset();
+          // Later: Sync with /api/staff POST
+        });
+
+      document
+        .getElementById("edit-staff-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const id = formData.get("id");
+          const s = staff.find((s) => s.id === id);
+          s.name = formData.get("name");
+          s.shift = formData.get("shift");
+          s.location = formData.get("location");
+          s.contactNumber = formData.get("contactNumber");
+          populateStaff();
+          populateAssignments(); // Update dropdowns
+          bootstrap.Modal.getInstance(
+            document.getElementById("editStaffModal")
+          ).hide();
+          // Later: Sync with /api/staff/:id PUT
+        });
+
+      document.getElementById("assign-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const newAssignment = {
+          id: `A${assignments.length + 1}`.padStart(4, "0"),
+          staffId: formData.get("staffId"),
+          clientId: formData.get("clientId"),
+          quantity: parseInt(formData.get("quantity")),
+          date: new Date().toISOString().split("T")[0],
+        };
+        assignments.push(newAssignment);
+        populateAssignments();
+        e.target.reset();
+        // Later: Sync with /api/assignments POST
+      });
+
+      document
+        .getElementById("profile-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          alert(
+            "Profile updated with: " +
+              new FormData(e.target).get("profilePhoto")
+          );
+          e.target.reset();
+          // Later: Sync with /api/settings/profile PUT
+        });
+
+      document
+        .getElementById("password-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          alert("Password changed successfully!");
+          e.target.reset();
+          // Later: Sync with /api/settings/password PUT
+        });
+
+      // Action Handlers
+      function generateBill(clientId) {
+        const client = clients.find((c) => c.id === clientId);
+        alert(
+          `Bill for ${client.name}: ${
+            client.quantity
+          }L x $${client.pricePerLitre.toFixed(2)} = $${(
+            client.quantity * client.pricePerLitre
+          ).toFixed(2)}`
+        );
+        // Later: Sync with /api/clients/bill/:id GET
+      }
+
+      function deleteClient(clientId) {
+        if (confirm("Delete this client?")) {
+          clients = clients.filter((c) => c.id !== clientId);
+          populateClients();
+          // Later: Sync with /api/clients/:id DELETE
+        }
+      }
+
+      function editStaff(staffId) {
+        const s = staff.find((s) => s.id === staffId);
+        const form = document.getElementById("edit-staff-form");
+        form.querySelector('[name="id"]').value = s.id;
+        form.querySelector('[name="name"]').value = s.name;
+        form.querySelector('[name="shift"]').value = s.shift;
+        form.querySelector('[name="location"]').value = s.location;
+        form.querySelector('[name="contactNumber"]').value = s.contactNumber;
+      }
+
+      function deleteStaff(staffId) {
+        if (confirm("Delete this staff?")) {
+          staff = staff.filter((s) => s.id !== staffId);
+          populateStaff();
+          populateAssignments();
+          // Later: Sync with /api/staff/:id DELETE
+        }
+      }
+
+      function updateSales() {
+        // Simulate month filter for demo
+        populateSales();
+        // Later: Sync with /api/sales/monthly?month=YYYY-MM
+      }
+
+      // Initialize
+      populateClients();
+      populateStaff();
+      populateAssignments();
+      populateSales();
+    </script>
+  </body>
+</html>

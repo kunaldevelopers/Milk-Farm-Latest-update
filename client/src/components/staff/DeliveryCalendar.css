@@ -1,0 +1,146 @@
+.calendar-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  margin-bottom: 16px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 8px;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  min-height: 60px;
+}
+
+.calendar-cell.selected {
+  background-color: rgba(25, 118, 210, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calendar-cell.today {
+  border: 2px solid #1976d2;
+}
+
+.delivery-status {
+  width: 100%;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.delivery-status.delivered {
+  background-color: #4caf50;
+  color: white;
+}
+
+.delivery-status.not-delivered {
+  background-color: #f44336;
+  color: white;
+}
+
+.delivery-status.pending {
+  background-color: #ffc107;
+  color: black;
+}
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 600px) {
+  .calendar-cell {
+    min-height: 50px;
+    padding: 2px;
+  }
+  
+  .delivery-status {
+    font-size: 10px;
+    padding: 1px 2px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .calendar-cell {
+    min-height: 40px;
+  }
+  
+  .calendar-grid {
+    gap: 2px;
+    padding: 4px;
+  }
+  
+  .delivery-status {
+    font-size: 9px;
+    padding: 1px;
+  }
+}
+
+/* Status chip colors */
+.status-chip.delivered {
+  background-color: #4caf50;
+  color: white;
+}
+
+.status-chip.not-delivered {
+  background-color: #f44336;
+  color: white;
+}
+
+.status-chip.pending {
+  background-color: #ffc107;
+  color: black;
+}
+
+/* Shift indicators */
+.shift-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(0,0,0,0.1);
+}
+
+@media screen and (max-width: 360px) {
+  .calendar-cell {
+    min-height: 35px;
+  }
+  
+  .delivery-status {
+    font-size: 8px;
+    line-height: 1;
+  }
+  
+  .shift-indicator {
+    width: 12px;
+    height: 12px;
+    font-size: 8px;
+  }
+}
