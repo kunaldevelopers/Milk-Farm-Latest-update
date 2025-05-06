@@ -142,19 +142,16 @@ export const clients = {
         endDate: endDate.toISOString(),
       },
     }),
-  getAssignedToStaff: (staffId: string) => {
-    if (!staffId) {
-      console.error("[API DEBUG] getAssignedToStaff called without staffId");
-      return Promise.reject(new Error("Staff ID is required"));
-    }
-
+  getAssignedToStaff: (staffId: string, includeAll?: boolean) => {
     const trimmedId = staffId.trim();
     console.log(
       `[API DEBUG] getAssignedToStaff - Fetching clients for staff ID: ${trimmedId}`
     );
 
     // Construct and log the full URL
-    const url = `/staff/${trimmedId}/assigned-clients`;
+    const url = `/staff/${trimmedId}/assigned-clients${
+      includeAll ? "?includeAll=true" : ""
+    }`;
     console.log(
       `[API DEBUG] getAssignedToStaff - Full URL: ${API_BASE_URL}${url}`
     );
@@ -214,20 +211,26 @@ export const staff = {
     );
     return api.get(`/staff/${id}/session/${date}`);
   },
-  markDailyDelivered: (id: string, clientId: string) => {
-    console.log(
-      `[API DEBUG] markDailyDelivered - Staff ${id} marking client ${clientId} as delivered`
-    );
-    return api.post(`/staff/${id}/client/${clientId}/daily-delivered`);
-  },
-  markDailyUndelivered: (id: string, clientId: string, reason: string) => {
-    console.log(
-      `[API DEBUG] markDailyUndelivered - Staff ${id} marking client ${clientId} as not delivered`
-    );
-    return api.post(`/staff/${id}/client/${clientId}/daily-undelivered`, {
+  getDailyDeliveries: (staffId: string, date: string) =>
+    api.get(`/staff/${staffId}/daily-deliveries?date=${date}`),
+  markDailyDelivered: (staffId: string, clientId: string, date: string) =>
+    api.post(`/staff/daily-deliveries`, {
+      staffId,
+      clientId,
+      date,
+    }),
+  markDailyUndelivered: (
+    staffId: string,
+    clientId: string,
+    reason: string,
+    date: string
+  ) =>
+    api.post(`/staff/daily-undelivered`, {
+      staffId,
+      clientId,
       reason,
-    });
-  },
+      date,
+    }),
 };
 
 // Add Daily Deliveries API

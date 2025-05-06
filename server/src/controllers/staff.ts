@@ -172,9 +172,9 @@ export const getByUserId = async (req: Request, res: Response) => {
 export const getAssignedClients = async (req: Request, res: Response) => {
   try {
     const staffId = req.params.id;
+    const { includeAll } = req.query;
     console.log(`[DEBUG] Fetching clients for staff ID: ${staffId}`);
 
-    // Basic ID validation
     if (!mongoose.Types.ObjectId.isValid(staffId)) {
       console.error(`[DEBUG] Invalid staff ID format: ${staffId}`);
       return res.status(400).json({
@@ -183,7 +183,6 @@ export const getAssignedClients = async (req: Request, res: Response) => {
       });
     }
 
-    // Find staff directly from the database
     const staff = await Staff.findById(staffId);
     if (!staff) {
       console.error(`[DEBUG] Staff not found for ID: ${staffId}`);
@@ -193,20 +192,17 @@ export const getAssignedClients = async (req: Request, res: Response) => {
       });
     }
 
-    // Log the assigned client IDs for debugging
     console.log(
       `[DEBUG] Staff ${staffId} has ${
         staff.assignedClients.length
       } assigned clients: ${JSON.stringify(staff.assignedClients)}`
     );
 
-    // Get all assigned clients if any exist
     if (!staff.assignedClients || staff.assignedClients.length === 0) {
       console.log(`[DEBUG] No clients assigned to staff ${staffId}`);
       return res.json([]);
     }
 
-    // Find all clients assigned to this staff member
     const assignedClients = await Client.find({
       _id: { $in: staff.assignedClients },
     })
@@ -220,23 +216,25 @@ export const getAssignedClients = async (req: Request, res: Response) => {
       `[DEBUG] Found ${assignedClients.length} total clients for staff ${staffId}`
     );
 
-    // Get current shift if any
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const staffSession = await StaffSession.findOne({ staffId, date: today });
+    // Only filter by shift if includeAll is not set to true
+    if (includeAll !== "true") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const staffSession = await StaffSession.findOne({ staffId, date: today });
 
-    // If there's an active shift session, filter by that shift
-    let filteredClients = assignedClients;
-    if (staffSession?.shift) {
-      filteredClients = assignedClients.filter(
-        (client) => client.timeShift === staffSession.shift
-      );
-      console.log(
-        `[DEBUG] Filtered to ${filteredClients.length} clients for ${staffSession.shift} shift`
-      );
+      if (staffSession?.shift) {
+        const filteredClients = assignedClients.filter(
+          (client) => client.timeShift === staffSession.shift
+        );
+        console.log(
+          `[DEBUG] Filtered to ${filteredClients.length} clients for ${staffSession.shift} shift`
+        );
+        return res.json(filteredClients);
+      }
     }
 
-    res.json(filteredClients);
+    // Return all assigned clients if no shift is selected or includeAll=true
+    res.json(assignedClients);
   } catch (error) {
     console.error("Error in getAssignedClients:", error);
     res.status(500).json({
@@ -1084,5 +1082,99 @@ export const getAllAssignments = async (req: Request, res: Response) => {
       message: "Error fetching staff assignments",
       error: error instanceof Error ? error.message : "Unknown error",
     });
+  }
+};
+
+export const markDailyDelivered = async (req: Request, res: Response) => {
+  try {
+    const { staffId, clientId, date } = req.body;
+
+    const dailyDelivery = await DailyDelivery.findOne({
+      staffId,
+      clientId,
+      date: date || new Date().toISOString().split("T")[0],
+    });
+
+    if (!dailyDelivery) {
+      const newDailyDelivery = new DailyDelivery({
+        staffId,
+        clientId,
+        date: date || new Date().toISOString().split("T")[0],
+        deliveryStatus: "Delivered",
+      });
+      await newDailyDelivery.save();
+    } else {
+      dailyDelivery.deliveryStatus = "Delivered";
+      await dailyDelivery.save();
+    }
+
+    res.status(200).json({ message: "Delivery status updated successfully" });
+  } catch (error) {
+    console.error("Error in markDailyDelivered:", error);
+    res.status(500).json({ message: "Failed to update delivery status" });
+  }
+};
+
+export const markDailyUndelivered = async (req: Request, res: Response) => {
+  try {
+    const { staffId, clientId, reason, date } = req.body;
+
+    const dailyDelivery = await DailyDelivery.findOne({
+      staffId,
+      clientId,
+      date: date || new Date().toISOString().split("T")[0],
+    });
+
+    if (!dailyDelivery) {
+      const newDailyDelivery = new DailyDelivery({
+        staffId,
+        clientId,
+        date: date || new Date().toISOString().split("T")[0],
+        deliveryStatus: "Not Delivered",
+        reason,
+      });
+      await newDailyDelivery.save();
+    } else {
+      dailyDelivery.deliveryStatus = "Not Delivered";
+      dailyDelivery.reason = reason;
+      await dailyDelivery.save();
+    }
+
+    res.status(200).json({ message: "Delivery status updated successfully" });
+  } catch (error) {
+    console.error("Error in markDailyUndelivered:", error);
+    res.status(500).json({ message: "Failed to update delivery status" });
+  }
+};
+
+export const getDailyDeliveries = async (req: Request, res: Response) => {
+  try {
+    const { staffId } = req.params;
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ message: "Date parameter is required" });
+    }
+
+    // Convert date string to Date object for the start of the day
+    const queryDate = new Date(date as string);
+    queryDate.setHours(0, 0, 0, 0);
+
+    // Get the end of the day
+    const endDate = new Date(queryDate);
+    endDate.setHours(23, 59, 59, 999);
+
+    const deliveries = await DailyDelivery.find({
+      staffId,
+      date: {
+        $gte: queryDate,
+        $lte: endDate,
+      },
+    }).populate("clientId");
+
+    res.status(200).json({ deliveries });
+  } catch (error) {
+    console.error("Error in getDailyDeliveries:", error);
+    res.status(500).json({ message: "Failed to fetch daily deliveries" });
   }
 };

@@ -50,6 +50,9 @@ const MobileStaffDashboard: React.FC = () => {
     message: string;
     type: "success" | "error" | "info";
   } | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
   const { user, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -62,141 +65,107 @@ const MobileStaffDashboard: React.FC = () => {
       setError("User authentication issue. Please login again.");
       setLoading(false);
     }
-  }, [user?._id]);
+  }, [user?._id, selectedDate]);
 
   const fetchAssignedClients = async () => {
     setLoading(true);
     setError(null);
     try {
-      console.log("[CLIENT DEBUG] Starting fetchAssignedClients");
-      console.log("[CLIENT DEBUG] Auth state:", {
-        user:
-          user?._id && user.username && user.role
-            ? {
-                _id: user._id,
-                username: user.username,
-                role: user.role,
-              }
-            : null,
-        token: localStorage.getItem("token")?.substring(0, 20) + "...",
-      });
-
       if (!user?._id) {
         throw new Error("Authentication required. Please login again.");
       }
 
-      // Step 1: Get staff record
-      console.log(
-        "[CLIENT DEBUG] Fetching staff record for user ID:",
-        user._id
+      const staffResponse = await staff.getByUserId(user._id);
+      const staffData = staffResponse.data;
+
+      if (!staffData?._id) {
+        throw new Error("Could not retrieve staff information.");
+      }
+
+      // For admin view or when shift isn't required, get all clients
+      if (user.role === "admin") {
+        const clientsResponse = await clients.getAssignedToStaff(
+          staffData._id,
+          true
+        );
+        const initialClients = clientsResponse.data.map((client: any) => ({
+          ...client,
+          deliveryStatus: "Pending",
+        }));
+        setAssignedClients(initialClients);
+        return;
+      }
+
+      // Get daily delivery records for the selected date for staff view
+      const dailyDeliveriesResponse = await staff.getDailyDeliveries(
+        staffData._id,
+        selectedDate
       );
-      try {
-        const staffResponse = await staff.getByUserId(user._id);
 
-        // Log the complete staff response for debugging
-        console.log(
-          "[CLIENT DEBUG] Raw staff response:",
-          JSON.stringify(
-            {
-              status: staffResponse.status,
-              statusText: staffResponse.statusText,
-              headers: staffResponse.headers,
-              data: staffResponse.data,
-            },
-            null,
-            2
-          )
-        );
-
-        const staffData = staffResponse.data;
-        if (!staffData?._id) {
-          console.error("[CLIENT DEBUG] Invalid staff data:", staffData);
-          throw new Error(
-            "Could not retrieve staff information. Please contact admin."
-          );
-        }
-
-        // Step 2: Get assigned clients
-        console.log(
-          "[CLIENT DEBUG] Fetching clients for staff ID:",
-          staffData._id
-        );
+      if (dailyDeliveriesResponse.data?.deliveries?.length > 0) {
+        const deliveriesWithClientData =
+          dailyDeliveriesResponse.data.deliveries.map((delivery: any) => ({
+            ...delivery.clientId,
+            deliveryStatus: delivery.deliveryStatus,
+            dailyDeliveryId: delivery._id,
+          }));
+        setAssignedClients(deliveriesWithClientData);
+      } else {
+        // If no delivery records exist for this date, get assigned clients for current shift
         const clientsResponse = await clients.getAssignedToStaff(staffData._id);
-        console.log("[CLIENT DEBUG] Clients response:", {
-          status: clientsResponse.status,
-          count: clientsResponse.data?.length || 0,
-        });
-
-        setAssignedClients(clientsResponse.data || []);
-
-        if (clientsResponse.data?.length === 0) {
-          setNotification({
-            message:
-              "No clients are currently assigned to you. Contact admin for assignments.",
-            type: "info",
-          });
-        }
-      } catch (staffError: any) {
-        console.error("[CLIENT DEBUG] Staff fetch error:", staffError);
-
-        // Enhanced error debugging, especially for 404s
-        if (staffError.response) {
-          const status = staffError.response.status;
-          if (status === 404) {
-            console.error(
-              "[CLIENT DEBUG] 404 details:",
-              JSON.stringify(staffError.response.data)
-            );
-            setError("Staff profile not found. Please contact support.");
-          } else if (status === 400) {
-            console.error(
-              "[CLIENT DEBUG] 400 details:",
-              JSON.stringify(staffError.response.data)
-            );
-            setError("Invalid user ID. Authentication error.");
-          } else if (status === 401) {
-            console.error(
-              "[CLIENT DEBUG] 401 details:",
-              JSON.stringify(staffError.response.data)
-            );
-            setError("Authentication required. Please login again.");
-            // Force logout on auth errors
-            setTimeout(() => logout(), 2000);
-          } else if (status === 403) {
-            console.error(
-              "[CLIENT DEBUG] 403 details:",
-              JSON.stringify(staffError.response.data)
-            );
-            setError(
-              "Access denied. You don't have permission to view this data."
-            );
-          } else {
-            console.error(
-              "[CLIENT DEBUG] Error details:",
-              JSON.stringify(staffError.response.data)
-            );
-            setError(`Server error (${status}). Please try again later.`);
-          }
-        } else {
-          console.error(
-            "[CLIENT DEBUG] Network error details:",
-            staffError.message
-          );
-          setError(
-            "Connection error. Please check your network and try again."
-          );
-        }
-
-        throw staffError; // Re-throw to prevent further processing
+        const initialClients = clientsResponse.data.map((client: any) => ({
+          ...client,
+          deliveryStatus: "Pending",
+        }));
+        setAssignedClients(initialClients);
       }
     } catch (error: any) {
-      console.error("[CLIENT DEBUG] Final error details:", {
-        name: error.name,
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        stack: error.stack,
-      });
+      console.error("[CLIENT DEBUG] Staff fetch error:", error);
+
+      // Enhanced error debugging, especially for 404s
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 404) {
+          console.error(
+            "[CLIENT DEBUG] 404 details:",
+            JSON.stringify(error.response.data)
+          );
+          setError("Staff profile not found. Please contact support.");
+        } else if (status === 400) {
+          console.error(
+            "[CLIENT DEBUG] 400 details:",
+            JSON.stringify(error.response.data)
+          );
+          setError("Invalid user ID. Authentication error.");
+        } else if (status === 401) {
+          console.error(
+            "[CLIENT DEBUG] 401 details:",
+            JSON.stringify(error.response.data)
+          );
+          setError("Authentication required. Please login again.");
+          // Force logout on auth errors
+          setTimeout(() => logout(), 2000);
+        } else if (status === 403) {
+          console.error(
+            "[CLIENT DEBUG] 403 details:",
+            JSON.stringify(error.response.data)
+          );
+          setError(
+            "Access denied. You don't have permission to view this data."
+          );
+        } else {
+          console.error(
+            "[CLIENT DEBUG] Error details:",
+            JSON.stringify(error.response.data)
+          );
+          setError(`Server error (${status}). Please try again later.`);
+        }
+      } else {
+        console.error("[CLIENT DEBUG] Network error details:", error.message);
+        setError("Connection error. Please check your network and try again.");
+      }
+
+      throw error; // Re-throw to prevent further processing
     } finally {
       setLoading(false);
     }
@@ -216,7 +185,11 @@ const MobileStaffDashboard: React.FC = () => {
       if (!user?._id) return;
 
       const staffResponse = await staff.getByUserId(user._id);
-      await staff.markDailyDelivered(staffResponse.data._id, client._id);
+      await staff.markDailyDelivered(
+        staffResponse.data._id,
+        client._id,
+        selectedDate
+      );
       setNotification({
         message: "Successfully marked as delivered",
         type: "success",
@@ -239,7 +212,8 @@ const MobileStaffDashboard: React.FC = () => {
       await staff.markDailyUndelivered(
         staffResponse.data._id,
         selectedClient._id,
-        notDeliveredReason
+        notDeliveredReason,
+        selectedDate
       );
       setOpenDialog(false);
       setNotDeliveredReason("");
@@ -360,6 +334,10 @@ const MobileStaffDashboard: React.FC = () => {
     }
   };
 
+  const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(event.target.value);
+  };
+
   if (showShiftSelector) {
     return (
       <Box sx={{ pb: 7, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
@@ -430,189 +408,191 @@ const MobileStaffDashboard: React.FC = () => {
           <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
             Welcome, {user?.name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </Typography>
-        </Box>
+          <TextField
+            type="date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            fullWidth
+            sx={{ mt: 2, mb: 1 }}
+            InputLabelProps={{ shrink: true }}
+          />
 
-        {error && (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            action={
-              <Button
-                color="inherit"
-                size="small"
-                onClick={() => setError(null)}
-              >
-                DISMISS
-              </Button>
-            }
-          >
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => setError(null)}
+                >
+                  DISMISS
+                </Button>
+              }
+            >
+              {error}
+            </Alert>
+          )}
 
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : assignedClients.length === 0 ? (
-          <Card sx={{ borderRadius: 2, mb: 2 }}>
-            <CardContent>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  py: 2,
-                }}
-              >
-                <ErrorOutlineIcon
-                  sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
-                />
-                <Typography align="center">
-                  No clients assigned for today.
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <Typography variant="subtitle2" sx={{ mb: 1, px: 1 }}>
-              Assigned Clients ({assignedClients.length})
-            </Typography>
-            {assignedClients.map((client) => (
-              <Card
-                key={client._id}
-                sx={{ mb: 2, borderRadius: 2, boxShadow: 2 }}
-              >
-                <CardContent sx={{ p: 2 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography variant="h6">{client.name}</Typography>
-                    <Chip
-                      label={client.deliveryStatus}
-                      size="small"
-                      sx={{
-                        bgcolor: getStatusColor(client.deliveryStatus),
-                        color: "white",
-                        fontWeight: 500,
-                      }}
-                    />
-                  </Box>
-
-                  <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                    <LocationOnIcon
-                      fontSize="small"
-                      sx={{ color: "text.secondary", mr: 0.5 }}
-                    />
-                    <Typography variant="body2" color="text.secondary">
-                      {client.location}
-                    </Typography>
-                  </Box>
-
-                  {client.number && (
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : assignedClients.length === 0 ? (
+            <Card sx={{ borderRadius: 2, mb: 2 }}>
+              <CardContent>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    py: 2,
+                  }}
+                >
+                  <ErrorOutlineIcon
+                    sx={{ fontSize: 48, color: "text.secondary", mb: 1 }}
+                  />
+                  <Typography align="center">
+                    No clients assigned for today.
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <Typography variant="subtitle2" sx={{ mb: 1, px: 1 }}>
+                Assigned Clients ({assignedClients.length})
+              </Typography>
+              {assignedClients.map((client) => (
+                <Card
+                  key={client._id}
+                  sx={{ mb: 2, borderRadius: 2, boxShadow: 2 }}
+                >
+                  <CardContent sx={{ p: 2 }}>
                     <Box
-                      sx={{ display: "flex", alignItems: "center", mt: 0.5 }}
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
                     >
-                      <LocalPhoneIcon
+                      <Typography variant="h6">{client.name}</Typography>
+                      <Chip
+                        label={client.deliveryStatus}
+                        size="small"
+                        sx={{
+                          bgcolor: getStatusColor(client.deliveryStatus),
+                          color: "white",
+                          fontWeight: 500,
+                        }}
+                      />
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                      <LocationOnIcon
                         fontSize="small"
                         sx={{ color: "text.secondary", mr: 0.5 }}
                       />
                       <Typography variant="body2" color="text.secondary">
-                        {client.number}
+                        {client.location}
                       </Typography>
                     </Box>
-                  )}
 
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mt: 1.5,
-                      mb: 0.5,
-                      pb: 1,
-                      borderBottom: "1px solid #eee",
-                    }}
-                  >
-                    <Typography variant="subtitle2">Daily Quantity:</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                      {client.quantity} L
-                    </Typography>
-                  </Box>
+                    {client.number && (
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mt: 0.5 }}
+                      >
+                        <LocalPhoneIcon
+                          fontSize="small"
+                          sx={{ color: "text.secondary", mr: 0.5 }}
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                          {client.number}
+                        </Typography>
+                      </Box>
+                    )}
 
-                  <Grid container spacing={1} sx={{ mt: 1 }}>
-                    <Grid item xs={6}>
-                      <Button
-                        fullWidth
-                        startIcon={<CheckCircleIcon />}
-                        variant="contained"
-                        color="success"
-                        disabled={client.deliveryStatus === "Delivered"}
-                        sx={{
-                          borderRadius: 2,
-                          textTransform: "none",
-                          boxShadow: 1,
-                        }}
-                        onClick={() =>
-                          handleDeliveryStatusChange(client, "Delivered")
-                        }
-                      >
-                        Delivered
-                      </Button>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        mt: 1.5,
+                        mb: 0.5,
+                        pb: 1,
+                        borderBottom: "1px solid #eee",
+                      }}
+                    >
+                      <Typography variant="subtitle2">
+                        Daily Quantity:
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                        {client.quantity} L
+                      </Typography>
+                    </Box>
+
+                    <Grid container spacing={1} sx={{ mt: 1 }}>
+                      <Grid item xs={6}>
+                        <Button
+                          fullWidth
+                          startIcon={<CheckCircleIcon />}
+                          variant="contained"
+                          color="success"
+                          disabled={client.deliveryStatus === "Delivered"}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: "none",
+                            boxShadow: 1,
+                          }}
+                          onClick={() =>
+                            handleDeliveryStatusChange(client, "Delivered")
+                          }
+                        >
+                          Delivered
+                        </Button>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Button
+                          fullWidth
+                          startIcon={<CancelIcon />}
+                          variant="outlined"
+                          color="error"
+                          disabled={client.deliveryStatus === "Not Delivered"}
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: "none",
+                          }}
+                          onClick={() =>
+                            handleDeliveryStatusChange(client, "Not Delivered")
+                          }
+                        >
+                          Not Delivered
+                        </Button>
+                      </Grid>
+                      <Grid item xs={12} sx={{ mt: 1 }}>
+                        <Button
+                          fullWidth
+                          startIcon={<PrintIcon />}
+                          variant="outlined"
+                          color="primary"
+                          sx={{
+                            borderRadius: 2,
+                            textTransform: "none",
+                          }}
+                          onClick={() => handlePrintBill(client)}
+                        >
+                          Print Bill
+                        </Button>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6}>
-                      <Button
-                        fullWidth
-                        startIcon={<CancelIcon />}
-                        variant="outlined"
-                        color="error"
-                        disabled={client.deliveryStatus === "Not Delivered"}
-                        sx={{
-                          borderRadius: 2,
-                          textTransform: "none",
-                        }}
-                        onClick={() =>
-                          handleDeliveryStatusChange(client, "Not Delivered")
-                        }
-                      >
-                        Not Delivered
-                      </Button>
-                    </Grid>
-                    <Grid item xs={12} sx={{ mt: 1 }}>
-                      <Button
-                        fullWidth
-                        startIcon={<PrintIcon />}
-                        variant="outlined"
-                        color="primary"
-                        sx={{
-                          borderRadius: 2,
-                          textTransform: "none",
-                        }}
-                        onClick={() => handlePrintBill(client)}
-                      >
-                        Print Bill
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            ))}
-          </>
-        )}
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          )}
+        </Box>
       </Container>
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>

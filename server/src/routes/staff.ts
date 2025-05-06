@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
+import { ILayer } from "express-serve-static-core";
 import {
   getById,
   getAll,
@@ -17,10 +18,19 @@ import {
   markClientDailyUndelivered,
   updateAssignedClients,
   getAllAssignments,
+  getDailyDeliveries,
+  markDailyDelivered,
+  markDailyUndelivered,
 } from "../controllers/staff";
 import { authMiddleware } from "../middleware/auth";
 import { StaffSession } from "../models/StaffSession";
 import { Client } from "../models/Client";
+
+// Define types for route debugging
+interface RouteInfo {
+  path: string;
+  methods: string[];
+}
 
 const router = Router();
 
@@ -152,19 +162,24 @@ router.get(
 // Add new route for getting all staff assignments in one request
 router.get("/assignments/all", asyncHandler(getAllAssignments));
 
+// New date-based delivery routes
+router.get("/:staffId/daily-deliveries", asyncHandler(getDailyDeliveries));
+router.post("/daily-deliveries", asyncHandler(markDailyDelivered));
+router.post("/daily-undelivered", asyncHandler(markDailyUndelivered));
+
 // Debug endpoint to check if routes are properly registered
-router.get("/debug/routes", (req, res) => {
+router.get("/debug/routes", (req: Request, res: Response) => {
   console.log("[DEBUG] Routes check requested");
 
-  // Create a simple map of registered routes
-  const routes = [];
+  const routes: RouteInfo[] = [];
 
-  // Use the internal _router object to get registered routes
   const stack = router.stack || [];
-  stack.forEach((layer) => {
+  stack.forEach((layer: ILayer) => {
     if (layer.route) {
       const path = layer.route.path;
-      const methods = Object.keys(layer.route.methods).map((m) =>
+      // Use type assertion for internal Express route structure
+      const route = layer.route as any;
+      const methods = Object.keys(route.methods || {}).map((m) =>
         m.toUpperCase()
       );
       routes.push({ path, methods });
@@ -173,7 +188,7 @@ router.get("/debug/routes", (req, res) => {
 
   res.status(200).json({
     message: "Staff routes debug info",
-    routes: routes,
+    routes,
     timestamp: new Date().toISOString(),
   });
 });

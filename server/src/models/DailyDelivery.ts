@@ -5,9 +5,10 @@ interface IDailyDelivery extends Document {
   staffId: Schema.Types.ObjectId;
   date: Date;
   shift: "AM" | "PM";
-  deliveryStatus: "Delivered" | "Not Delivered";
+  deliveryStatus: "Delivered" | "Not Delivered" | "Pending"; // Added Pending status
   quantity: number;
   price: number;
+  reason?: string; // Added reason field
   notes?: string;
 }
 
@@ -18,20 +19,17 @@ const dailyDeliverySchema = new Schema<IDailyDelivery>(
     date: {
       type: Date,
       required: true,
-      default: () => {
-        const d = new Date();
-        d.setHours(0, 0, 0, 0);
-        return d;
-      },
+      default: () => new Date().setHours(0, 0, 0, 0),
     },
     shift: { type: String, enum: ["AM", "PM"], required: true },
     deliveryStatus: {
       type: String,
-      enum: ["Delivered", "Not Delivered"],
-      default: "Not Delivered",
+      enum: ["Delivered", "Not Delivered", "Pending"], // Added Pending status
+      default: "Pending", // Changed default to Pending
     },
     quantity: { type: Number, default: 0 },
     price: { type: Number, default: 0 },
+    reason: { type: String }, // Added reason field
     notes: { type: String },
   },
   {
@@ -39,25 +37,21 @@ const dailyDeliverySchema = new Schema<IDailyDelivery>(
   }
 );
 
-// Create a compound index on clientId, date and shift to ensure uniqueness per shift
-dailyDeliverySchema.index({ clientId: 1, date: 1, shift: 1 }, { unique: true });
+// Create a compound index on clientId and date to ensure uniqueness
+dailyDeliverySchema.index({ clientId: 1, date: 1 }, { unique: true });
 
-// Add index on date and staffId for better staff delivery queries
-dailyDeliverySchema.index({ date: 1, staffId: 1 });
+// Add index on date for better query performance with date ranges
+dailyDeliverySchema.index({ date: 1 });
 
 // Add index on delivery status for filtering
 dailyDeliverySchema.index({ deliveryStatus: 1 });
 
-// Pre-save middleware to ensure date is always normalized to midnight
-dailyDeliverySchema.pre("save", function (next) {
-  if (this.isModified("date")) {
-    const d = new Date(this.date);
-    d.setHours(0, 0, 0, 0);
-    this.date = d;
-  }
-  next();
-});
+// Add compound index on date and shift for filtering by both
+dailyDeliverySchema.index({ date: 1, shift: 1 });
 
+console.log(
+  "DailyDelivery model created with shift support and optimized indices"
+);
 export const DailyDelivery = model<IDailyDelivery>(
   "DailyDelivery",
   dailyDeliverySchema

@@ -6,34 +6,6 @@ import { StaffSession } from "../models/StaffSession";
 import mongoose from "mongoose";
 
 /**
- * Get clients with priority status
- */
-const getPriorityClients = async (shiftFilter?: string) => {
-  console.log("[DASHBOARD] Fetching priority clients");
-
-  const matchCriteria: any = {
-    priorityStatus: true,
-  };
-
-  if (shiftFilter && ["AM", "PM"].includes(shiftFilter)) {
-    matchCriteria.timeShift = shiftFilter;
-  }
-
-  const priorityClients = await Client.find(matchCriteria).lean();
-
-  console.log(`[DASHBOARD] Found ${priorityClients.length} priority clients`);
-
-  return priorityClients.map((client) => ({
-    _id: client._id,
-    name: client.name,
-    location: client.location,
-    timeShift: client.timeShift,
-    quantity: client.quantity,
-    deliveryStatus: client.deliveryStatus,
-  }));
-};
-
-/**
  * Get comprehensive dashboard data with accurate metrics
  */
 export const getDashboardData = async (req: Request, res: Response) => {
@@ -89,9 +61,6 @@ export const getDashboardData = async (req: Request, res: Response) => {
       shiftFilter
     );
 
-    // Get priority clients
-    const priorityClients = await getPriorityClients(shiftFilter);
-
     // Get staff performance
     const staffPerformance = await getStaffPerformance(startDate, endDate);
 
@@ -124,7 +93,6 @@ export const getDashboardData = async (req: Request, res: Response) => {
       assignmentStatus: {
         totalQuantityAssigned: assignedQuantity,
       },
-      priorityClients, // Added priority clients to response
       deliveryRecords,
       staffPerformance,
       shiftAnalytics,
