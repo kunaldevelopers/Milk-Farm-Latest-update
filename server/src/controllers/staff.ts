@@ -266,7 +266,8 @@ export const getAssignedClients = async (req: Request, res: Response) => {
         // If we have a daily record, use that status
         client.deliveryStatus = dailyStatus.deliveryStatus;
         client.deliveryNotes = dailyStatus.notes;
-        client.dailyQuantity = dailyStatus.quantity;
+        // Add type assertion to fix TypeScript error
+        (client as any).dailyQuantity = dailyStatus.quantity;
       } else {
         // If no daily record exists for this date, ALWAYS set status to Pending
         client.deliveryStatus = "Pending";

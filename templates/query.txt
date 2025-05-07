@@ -1,0 +1,910 @@
+can u told me that when i goest to start server using 'npm run dev', "
+Kunal@Developer MINGW64 ~/Downloads/TodayDESK/Temporary-crm/server (main)
+$ npm run dev
+
+> milk-farm-crm-server@1.0.0 dev
+> ts-node-dev --respawn --transpile-only src/app.ts
+
+[INFO] 12:32:10 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.8.3)
+DailyDelivery model created with shift support and optimized indices
+StaffSession model created for tracking daily shift selections
+Connected to MongoDB database: ?retryWrites=true&w=majority&appName=Cluster0
+Available collections: dailydeliveries, users, staffsessions, systemsettings, staffs, clients
+✓ Default system settings initialized
+✓ Default users already exist in the database
+✓ Database initialization completed
+Server is running on port 5000
+GET /api/admin/dashboard {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"5b6-99uIIzgSEd+d+7czCtyPgSmAhlY"'
+  },
+  body: undefined
+}
+[DASHBOARD] Querying deliveries for date range: 2025-05-07T00:00:00.000Z to 2025-05-07T18:29:59.999Z
+[DASHBOARD] Getting today's totals for 2025-05-07T00:00:00.000Z to 2025-05-07T18:29:59.999Z
+[DASHBOARD] Today's totals: {"quantity":9.3,"revenue":732.4}
+[DASHBOARD] Querying monthly deliveries: 2025-04-30T18:30:00.000Z to 2025-05-31T18:29:59.999Z
+[DASHBOARD] Monthly totals: {"quantity":12.6,"revenue":884.8}
+[DASHBOARD] Querying success rate between 2025-05-06T18:30:00.000Z and 2025-05-07T18:29:59.999Z
+[DASHBOARD] Success rate results: {"total":3,"delivered":2,"successRate":66.66666666666666}
+[DASHBOARD] Querying staff performance between 2025-05-06T18:30:00.000Z and 2025-05-07T18:29:59.999Z
+[DASHBOARD] Found 2 staff performance records
+[DASHBOARD] Querying shift analytics between 2025-05-06T18:30:00.000Z and 2025-05-07T18:29:59.999Z
+[DASHBOARD] Found 2 shift analytics records
+[DASHBOARD] Shift analytics sample: {"deliveryCount":2,"deliveredCount":1,"totalQuantity":7.3,"totalRevenue":642.4,"shift":"PM","successRate":50}
+GET /api/admin/dashboard {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"5b6-prhiq9wPau+0cx6Vks8et4ySsHU"'
+  },
+  body: undefined
+}
+[DASHBOARD] Querying deliveries for date range: 2025-05-07T00:00:00.000Z to 2025-05-07T18:29:59.999Z
+[DASHBOARD] Getting today's totals for 2025-05-07T00:00:00.000Z to 2025-05-07T18:29:59.999Z
+[DASHBOARD] Today's totals: {"quantity":9.3,"revenue":732.4}
+[DASHBOARD] Querying monthly deliveries: 2025-04-30T18:30:00.000Z to 2025-05-31T18:29:59.999Z
+[DASHBOARD] Monthly totals: {"quantity":12.6,"revenue":884.8}
+[DASHBOARD] Querying success rate between 2025-05-06T18:30:00.000Z and 2025-05-07T18:29:59.999Z
+[DASHBOARD] Success rate results: {"total":3,"delivered":2,"successRate":66.66666666666666}
+[DASHBOARD] Querying staff performance between 2025-05-06T18:30:00.000Z and 2025-05-07T18:29:59.999Z
+[DASHBOARD] Found 2 staff performance records
+[DASHBOARD] Querying shift analytics between 2025-05-06T18:30:00.000Z and 2025-05-07T18:29:59.999Z
+[DASHBOARD] Found 2 shift analytics records
+[DASHBOARD] Shift analytics sample: {"deliveryCount":2,"deliveredCount":1,"totalQuantity":7.3,"totalRevenue":642.4,"shift":"PM","successRate":50}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff/assignments/all {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"342-Fm44H2pv3KJxUMRKE3eAHv9PdOk"'
+  },
+  body: undefined
+}
+[STAFF DEBUG] Getting all staff-client assignments
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff/assignments/all {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"342-Fm44H2pv3KJxUMRKE3eAHv9PdOk"'
+  },
+  body: undefined
+}
+[STAFF DEBUG] Getting all staff-client assignments
+GET /api/admin/admins {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"bb-z/2sB4RlqEBhVlkset3at27FC10"'
+  },
+  body: undefined
+}
+GET /api/admin/admins {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"bb-z/2sB4RlqEBhVlkset3at27FC10"'
+  },
+  body: undefined
+}
+", i load much and detailed components but when use "npm start" it dosent load all component maybe routing cant detect or whever the reason thoe log of npm start "
+Kunal@Developer MINGW64 ~/Downloads/TodayDESK/Temporary-crm/server (main)
+$ npm start
+
+> milk-farm-crm-server@1.0.0 start
+> node dist/app.js
+
+DailyDelivery model created with shift support and optimized indices
+StaffSession model created for tracking daily shift selections
+Connected to MongoDB database: ?retryWrites=true&w=majority&appName=Cluster0
+Available collections: dailydeliveries, users, staffsessions, systemsettings, staffs, clients
+✓ Default system settings initialized
+✓ Default users already exist in the database
+✓ Database initialization completed
+Server is running on port 5000
+GET /api/admin/dashboard {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"5b6-1NvcBuF+6oGA8gPjFypstGKptFM"'
+  },
+  body: undefined
+}
+[DASHBOARD] Querying deliveries for date range: 2025-05-07T00:00:00.000Z to 2025-05-07T23:59:59.999Z
+[DASHBOARD] Getting today's totals for 2025-05-07T00:00:00.000Z to 2025-05-07T23:59:59.999Z
+[DASHBOARD] Today's totals: {"quantity":0,"revenue":0}
+[DASHBOARD] Querying monthly deliveries: 2025-05-01T00:00:00.000Z to 2025-05-31T23:59:59.999Z
+[DASHBOARD] Monthly totals: {"quantity":12.6,"revenue":884.8}
+[DASHBOARD] Querying success rate between 2025-05-07T00:00:00.000Z and 2025-05-07T23:59:59.999Z
+[DASHBOARD] Success rate results: {"total":0,"delivered":0,"successRate":0}
+[DASHBOARD] Querying staff performance between 2025-05-07T00:00:00.000Z and 2025-05-07T23:59:59.999Z
+[DASHBOARD] Found 0 staff performance records
+[DASHBOARD] Querying shift analytics between 2025-05-07T00:00:00.000Z and 2025-05-07T23:59:59.999Z
+[DASHBOARD] Found 0 shift analytics records
+GET /api/admin/dashboard {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"187-du/Fv/OaDthffsSrFyPiUORf93I"'
+  },
+  body: undefined
+}
+[DASHBOARD] Querying deliveries for date range: 2025-05-07T00:00:00.000Z to 2025-05-07T23:59:59.999Z
+[DASHBOARD] Getting today's totals for 2025-05-07T00:00:00.000Z to 2025-05-07T23:59:59.999Z
+[DASHBOARD] Today's totals: {"quantity":0,"revenue":0}
+[DASHBOARD] Querying monthly deliveries: 2025-05-01T00:00:00.000Z to 2025-05-31T23:59:59.999Z
+[DASHBOARD] Monthly totals: {"quantity":12.6,"revenue":884.8}
+[DASHBOARD] Querying success rate between 2025-05-07T00:00:00.000Z and 2025-05-07T23:59:59.999Z
+[DASHBOARD] Success rate results: {"total":0,"delivered":0,"successRate":0}
+[DASHBOARD] Querying staff performance between 2025-05-07T00:00:00.000Z and 2025-05-07T23:59:59.999Z
+[DASHBOARD] Found 0 staff performance records
+[DASHBOARD] Querying shift analytics between 2025-05-07T00:00:00.000Z and 2025-05-07T23:59:59.999Z
+[DASHBOARD] Found 0 shift analytics records
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff/assignments/all {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"342-Fm44H2pv3KJxUMRKE3eAHv9PdOk"'
+  },
+  body: undefined
+}
+[STAFF DEBUG] Getting all staff-client assignments
+GET /api/clients {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"8c1-IM/s96kATRvy5w+1nM8O6UtF32U"'
+  },
+  body: undefined
+}
+GET /api/staff {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"388-ODg4FGrLL3Iw7FfdEH2RMwUoQZc"'
+  },
+  body: undefined
+}
+GET /api/staff/assignments/all {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"342-Fm44H2pv3KJxUMRKE3eAHv9PdOk"'
+  },
+  body: undefined
+}
+[STAFF DEBUG] Getting all staff-client assignments
+GET /api/admin/admins {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"bb-z/2sB4RlqEBhVlkset3at27FC10"'
+  },
+  body: undefined
+}
+GET /api/admin/admins {
+  headers: {
+    host: 'localhost:5000',
+    connection: 'keep-alive',
+    'x-user-role': 'admin',
+    authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VySWQiOiI2ODE5ZjM2MzVhMDdlZjEzZTJjMzEyOGUiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwibmFtZSI6IlN5c3RlbSBBZG1pbiIsImlhdCI6MTc0NjU5MzI1MSwiZXhwIjoxNzQ2Njc5NjUxfQ.geq0M3pOTu8I5FYqjfCKjKhE7fOHPeUUJGAvl6HGAoI',
+    'sec-ch-ua-platform': '"Windows"',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    accept: 'application/json, text/plain, */*',
+    'sec-ch-ua': '"Chromium";v="136", "Brave";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-gpc': '1',
+    'accept-language': 'en-US,en;q=0.7',
+    origin: 'http://localhost:3000',
+    'sec-fetch-site': 'same-site',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-dest': 'empty',
+    referer: 'http://localhost:3000/',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'if-none-match': 'W/"bb-z/2sB4RlqEBhVlkset3at27FC10"'
+  },
+  body: undefined
+}
+", can u told me the when is the error occured and how to fix it 

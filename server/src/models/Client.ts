@@ -29,6 +29,7 @@ interface IClient extends Document {
   deliveryHistory: DeliveryRecord[];
   monthlyBilling: BillingInfo;
   deliveryNotes?: string;
+  dailyQuantity?: number; // Added property to fix TypeScript error
 }
 
 const deliveryRecordSchema = new Schema<DeliveryRecord>({

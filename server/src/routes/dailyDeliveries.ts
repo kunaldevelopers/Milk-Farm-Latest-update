@@ -18,7 +18,10 @@ const asyncHandler = (
 };
 
 // Apply auth middleware to all routes
-router.use(asyncHandler(authMiddleware));
+// Fix: Create a wrapper function that TypeScript can recognize as a proper middleware
+router.use((req: Request, res: Response, next: NextFunction) => {
+  authMiddleware(req, res, next);
+});
 
 // Get all deliveries for a specific date, optionally filtered by shift
 router.get(
