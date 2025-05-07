@@ -142,15 +142,25 @@ export const clients = {
         endDate: endDate.toISOString(),
       },
     }),
-  getAssignedToStaff: (staffId: string, includeAll?: boolean) => {
+  getAssignedToStaff: (
+    staffId: string,
+    includeAll: boolean = false,
+    date?: string
+  ) => {
     const trimmedId = staffId.trim();
+    const selectedShift = localStorage.getItem("selectedShift");
     console.log(
-      `[API DEBUG] getAssignedToStaff - Fetching clients for staff ID: ${trimmedId}`
+      `[API DEBUG] getAssignedToStaff - Fetching clients for staff ID: ${trimmedId}, shift: ${
+        selectedShift || "unknown"
+      }, date: ${date || "today"}`
     );
 
-    // Construct and log the full URL
+    const params = new URLSearchParams();
+    if (includeAll) params.append("includeAll", "true");
+    if (date) params.append("date", date);
+
     const url = `/staff/${trimmedId}/assigned-clients${
-      includeAll ? "?includeAll=true" : ""
+      params.toString() ? `?${params.toString()}` : ""
     }`;
     console.log(
       `[API DEBUG] getAssignedToStaff - Full URL: ${API_BASE_URL}${url}`
@@ -193,23 +203,32 @@ export const staff = {
     api.post("/staff/assign", { staffId, clientId }),
   unassignClient: (staffId: string, clientId: string) =>
     api.post("/staff/unassign", { staffId, clientId }),
-  selectShift: (id: string, shift: string) => {
-    console.log(
-      `[API DEBUG] selectShift - Staff ${id} selecting ${shift} shift`
-    );
-    return api.post(`/staff/${id}/select-shift`, { shift });
-  },
   updateAssignedClients: (id: string, shift: "AM" | "PM") => {
     console.log(
       `[API DEBUG] updateAssignedClients - Updating staff ${id} clients based on ${shift} shift`
     );
-    return api.post(`/staff/${id}/update-assigned-clients`, { shift });
+    // Store the shift in localStorage for consistent access across components
+    localStorage.setItem("selectedShift", shift);
+    return api.post(`/staff/${id}/update-assigned-clients`, {
+      shift,
+      filterByShift: true, // Always filter by shift
+    });
+  },
+  selectShift: (id: string, shift: "AM" | "PM") => {
+    console.log(
+      `[API DEBUG] selectShift - Staff ${id} selecting ${shift} shift`
+    );
+    // Store the shift in localStorage for consistent access across components
+    localStorage.setItem("selectedShift", shift);
+    return api.post(`/staff/${id}/select-shift`, { shift });
   },
   getSessionByDate: (id: string, date: string) => {
     console.log(
       `[API DEBUG] getSessionByDate - Getting session for staff ${id} on ${date}`
     );
-    return api.get(`/staff/${id}/session/${date}`);
+    // Use a properly formatted date string to avoid timezone issues
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+    return api.get(`/staff/${id}/session/${formattedDate}`);
   },
   getDailyDeliveries: (staffId: string, date: string) =>
     api.get(`/staff/${staffId}/daily-deliveries?date=${date}`),

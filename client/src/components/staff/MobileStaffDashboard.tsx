@@ -7,7 +7,6 @@ import {
   CardContent,
   Button,
   Chip,
-  Divider,
   Grid,
   IconButton,
   Dialog,
@@ -54,116 +53,120 @@ const MobileStaffDashboard: React.FC = () => {
     new Date().toISOString().split("T")[0]
   );
   const [staffId, setStaffId] = useState<string | null>(null);
+  const [forceShiftSelection, setForceShiftSelection] = useState(true);
   const { user, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  // Single useEffect for initialization
   useEffect(() => {
-    if (user?._id) {
-      fetchStaffData();
-    } else {
-      console.log("No user ID available for fetching clients");
-      setError("User authentication issue. Please login again.");
-      setLoading(false);
-    }
-  }, [user?._id, selectedDate]);
+    // Only initialize once when component mounts
+    const initialize = async () => {
+      try {
+        // Clear any previously selected shift
+        console.log("[CLIENT DEBUG] Clearing previous shift selection");
+        localStorage.removeItem("selectedShift");
 
-  const fetchStaffData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      if (!user?._id) {
-        throw new Error("Authentication required. Please login again.");
+        // Always force shift selection on fresh login
+        setShowShiftSelector(true);
+        setForceShiftSelection(true);
+
+        if (!user?._id) {
+          console.log("[CLIENT DEBUG] No user ID available");
+          setError("Authentication required. Please login again.");
+          setLoading(false);
+          return;
+        }
+
+        // Only get the staff ID, nothing else
+        await getStaffIdOnly();
+      } catch (error: any) {
+        console.error("[CLIENT DEBUG] Error in initialization:", error);
+        setError("Failed to initialize. Please try again.");
+      } finally {
+        setLoading(false);
       }
+    };
+
+    initialize();
+
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      // Cleanup code if needed
+    };
+  }, [user?._id]); // Only depend on user ID
+
+  // Simplified function that only gets staff ID
+  const getStaffIdOnly = async () => {
+    try {
+      if (!user?._id) return;
+
+      setLoading(true);
+      console.log("[CLIENT DEBUG] Getting staff ID only");
 
       const staffResponse = await staff.getByUserId(user._id);
-      const staffData = staffResponse.data;
-      setStaffId(staffData._id);
+      const staffId = staffResponse.data._id;
+      setStaffId(staffId);
 
-      // For admin view or when shift isn't required, get all clients
-      if (user.role === "admin") {
-        const clientsResponse = await clients.getAssignedToStaff(
-          staffData._id,
-          true
-        );
-        const initialClients = clientsResponse.data.map((client: any) => ({
-          ...client,
-          deliveryStatus: "Pending",
-        }));
-        setAssignedClients(initialClients);
-        return;
+      console.log("[CLIENT DEBUG] Got staff ID:", staffId);
+
+      // CRITICAL: Force showing the shift selector no matter what
+      setShowShiftSelector(true);
+      return staffId;
+    } catch (error: any) {
+      console.error("[CLIENT DEBUG] Error fetching staff ID:", error);
+      setError("Failed to load your staff profile. Please try again.");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to handle shift selection
+  const handleShiftSelect = async (shift: "AM" | "PM") => {
+    try {
+      if (!staffId) {
+        const newStaffId = await getStaffIdOnly();
+        if (!newStaffId) {
+          setError("Could not retrieve staff ID. Please try again.");
+          return;
+        }
       }
 
-      // Get daily delivery records for the selected date for staff view
-      const dailyDeliveriesResponse = await staff.getDailyDeliveries(
-        staffData._id,
-        selectedDate
+      console.log(
+        `[CLIENT DEBUG] Selecting ${shift} shift for staff ${staffId}`
+      );
+      setLoading(true);
+
+      // Select shift on server - this creates a new session
+      await staff.selectShift(staffId!, shift);
+
+      // Store the shift in localStorage
+      localStorage.setItem("selectedShift", shift);
+      setSelectedShift(shift);
+
+      // Don't show shift selector anymore
+      setShowShiftSelector(false);
+      setForceShiftSelection(false);
+
+      // Get all assigned clients and filter by shift
+      const clientsResponse = await clients.getAssignedToStaff(staffId!, true);
+      const filteredClients = clientsResponse.data.filter(
+        (client: any) => client.timeShift === shift
       );
 
-      if (dailyDeliveriesResponse.data?.deliveries?.length > 0) {
-        const deliveriesWithClientData =
-          dailyDeliveriesResponse.data.deliveries.map((delivery: any) => ({
-            ...delivery.clientId,
-            deliveryStatus: delivery.deliveryStatus,
-            dailyDeliveryId: delivery._id,
-          }));
-        setAssignedClients(deliveriesWithClientData);
-      } else {
-        // If no delivery records exist for this date, get assigned clients for current shift
-        const clientsResponse = await clients.getAssignedToStaff(staffData._id);
-        const initialClients = clientsResponse.data.map((client: any) => ({
-          ...client,
-          deliveryStatus: "Pending",
-        }));
-        setAssignedClients(initialClients);
-      }
+      console.log(
+        `[CLIENT DEBUG] Filtered ${clientsResponse.data.length} clients to ${filteredClients.length} clients matching ${shift} shift`
+      );
+      setAssignedClients(filteredClients);
+
+      setNotification({
+        message: `Successfully selected ${shift} shift. Showing ${filteredClients.length} clients.`,
+        type: "success",
+      });
     } catch (error: any) {
-      console.error("[CLIENT DEBUG] Staff fetch error:", error);
-
-      // Enhanced error debugging, especially for 404s
-      if (error.response) {
-        const status = error.response.status;
-        if (status === 404) {
-          console.error(
-            "[CLIENT DEBUG] 404 details:",
-            JSON.stringify(error.response.data)
-          );
-          setError("Staff profile not found. Please contact support.");
-        } else if (status === 400) {
-          console.error(
-            "[CLIENT DEBUG] 400 details:",
-            JSON.stringify(error.response.data)
-          );
-          setError("Invalid user ID. Authentication error.");
-        } else if (status === 401) {
-          console.error(
-            "[CLIENT DEBUG] 401 details:",
-            JSON.stringify(error.response.data)
-          );
-          setError("Authentication required. Please login again.");
-          // Force logout on auth errors
-          setTimeout(() => logout(), 2000);
-        } else if (status === 403) {
-          console.error(
-            "[CLIENT DEBUG] 403 details:",
-            JSON.stringify(error.response.data)
-          );
-          setError(
-            "Access denied. You don't have permission to view this data."
-          );
-        } else {
-          console.error(
-            "[CLIENT DEBUG] Error details:",
-            JSON.stringify(error.response.data)
-          );
-          setError(`Server error (${status}). Please try again later.`);
-        }
-      } else {
-        console.error("[CLIENT DEBUG] Network error details:", error.message);
-        setError("Connection error. Please check your network and try again.");
-      }
-
-      throw error; // Re-throw to prevent further processing
+      console.error("[CLIENT DEBUG] Error selecting shift:", error);
+      setError(error.message || "Failed to select shift");
     } finally {
       setLoading(false);
     }
@@ -193,7 +196,7 @@ const MobileStaffDashboard: React.FC = () => {
         message: "Successfully marked as delivered",
         type: "success",
       });
-      fetchStaffData();
+      refreshData(); // Changed from fetchStaffData() to refreshData()
     } catch (error: any) {
       console.error("Error marking delivery:", error);
       setNotification({
@@ -224,7 +227,7 @@ const MobileStaffDashboard: React.FC = () => {
         message: "Successfully marked as not delivered",
         type: "success",
       });
-      fetchStaffData();
+      refreshData(); // Changed from fetchStaffData() to refreshData()
     } catch (error: any) {
       console.error("Error marking non-delivery:", error);
       setNotification({
@@ -304,44 +307,57 @@ const MobileStaffDashboard: React.FC = () => {
   };
 
   const refreshData = () => {
-    fetchStaffData();
+    // Only refresh client data without checking sessions
+    if (!staffId || !selectedShift) return;
+
+    const refreshClients = async () => {
+      try {
+        setLoading(true);
+
+        // Format date to ensure consistent format: YYYY-MM-DD
+        const formattedDate = new Date(selectedDate)
+          .toISOString()
+          .split("T")[0];
+        console.log(
+          `[CLIENT DEBUG] Refreshing data for formatted date: ${formattedDate}`
+        );
+
+        // Pass the properly formatted date to the API call
+        const clientsResponse = await clients.getAssignedToStaff(
+          staffId,
+          true,
+          formattedDate // Pass the formatted date to filter by date
+        );
+
+        const filteredClients = clientsResponse.data.filter(
+          (client: any) => client.timeShift === selectedShift
+        );
+
+        console.log(
+          `[CLIENT DEBUG] Received ${filteredClients.length} clients with date ${formattedDate}`
+        );
+        setAssignedClients(filteredClients);
+      } catch (error: any) {
+        console.error("[CLIENT DEBUG] Error refreshing data:", error);
+        setError("Failed to refresh data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    refreshClients();
   };
 
   const handleCloseNotification = () => {
     setNotification(null);
   };
 
-  // Add shift selection handler
-  const handleShiftSelect = async (shift: "AM" | "PM") => {
-    try {
-      if (!user?._id) return;
-
-      // Get staff data first
-      const staffResponse = await staff.getByUserId(user._id);
-      const staffId = staffResponse.data._id;
-
-      // Select shift
-      await staff.selectShift(staffId, shift);
-      setSelectedShift(shift);
-      setShowShiftSelector(false);
-
-      // Refresh data
-      fetchStaffData();
-
-      setNotification({
-        message: `Successfully selected ${shift} shift`,
-        type: "success",
-      });
-    } catch (error: any) {
-      setError(error.message || "Failed to select shift");
-    }
-  };
-
   const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedDate(event.target.value);
   };
 
-  if (showShiftSelector) {
+  // Always show shift selector if forceShiftSelection is true
+  if (showShiftSelector || forceShiftSelection) {
     return (
       <Box sx={{ pb: 7, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
         <AppBar position="sticky" sx={{ bgcolor: "#5c6bc0" }}>
@@ -367,6 +383,7 @@ const MobileStaffDashboard: React.FC = () => {
                     color="primary"
                     onClick={() => handleShiftSelect("AM")}
                     sx={{ py: 2 }}
+                    disabled={loading}
                   >
                     AM Shift
                   </Button>
@@ -378,11 +395,18 @@ const MobileStaffDashboard: React.FC = () => {
                     color="secondary"
                     onClick={() => handleShiftSelect("PM")}
                     sx={{ py: 2 }}
+                    disabled={loading}
                   >
                     PM Shift
                   </Button>
                 </Grid>
               </Grid>
+
+              {loading && (
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                  <CircularProgress />
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Container>
@@ -390,6 +414,7 @@ const MobileStaffDashboard: React.FC = () => {
     );
   }
 
+  // Regular dashboard view
   return (
     <Box sx={{ pb: 7, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
       <AppBar position="sticky" sx={{ bgcolor: "#5c6bc0" }}>

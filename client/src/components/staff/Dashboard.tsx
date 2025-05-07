@@ -155,9 +155,19 @@ const StaffDashboard: React.FC = () => {
     try {
       if (!staffData?._id) return;
 
-      await staff.selectShift(staffData._id, shift);
-      const response = await clients.getAssignedToStaff(staffData._id);
-      setAssignedClients(response.data);
+      // First update the staff's assigned clients based on shift
+      await staff.updateAssignedClients(staffData._id, shift);
+
+      // Then get the filtered clients for the selected shift
+      const response = await clients.getAssignedToStaff(staffData._id, false);
+      const filteredClients = response.data.filter(
+        (client: Client) => client.timeShift === shift
+      );
+      setAssignedClients(filteredClients);
+
+      console.log(
+        `[STAFF DEBUG] Updated clients for ${shift} shift: ${filteredClients.length} clients`
+      );
     } catch (error: any) {
       console.error("Error updating assigned clients:", error);
       setError("Failed to update assigned clients based on shift.");
@@ -218,17 +228,31 @@ const StaffDashboard: React.FC = () => {
     try {
       if (!staffData?._id) return;
 
-      await staff.selectShift(staffData._id, shift);
+      console.log(
+        `[CLIENT DEBUG] Selecting ${shift} shift for staff ${staffData._id}`
+      );
+
+      const response = await staff.selectShift(staffData._id, shift);
+      localStorage.setItem("selectedShift", shift); // Store shift in localStorage for persistence
       setSelectedShift(shift);
       setShowShiftSelector(false);
+
+      console.log(
+        `[CLIENT DEBUG] Successfully selected ${shift} shift. Updating clients...`
+      );
+
+      // First update the assigned clients based on shift
       await updateAssignedClients(shift);
-      checkStaffSession();
+
+      // Then fetch daily deliveries which should now be filtered by shift
+      await fetchDailyDeliveries();
+
       setNotification({
         message: `Successfully selected ${shift} shift`,
         type: "success",
       });
     } catch (error: any) {
-      console.error("Error selecting shift:", error);
+      console.error("[CLIENT DEBUG] Error selecting shift:", error);
       setNotification({
         message: error.message || "Failed to select shift",
         type: "error",

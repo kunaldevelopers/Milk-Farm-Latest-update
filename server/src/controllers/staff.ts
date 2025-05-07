@@ -172,11 +172,14 @@ export const getByUserId = async (req: Request, res: Response) => {
 export const getAssignedClients = async (req: Request, res: Response) => {
   try {
     const staffId = req.params.id;
-    const { includeAll } = req.query;
-    console.log(`[DEBUG] Fetching clients for staff ID: ${staffId}`);
+    const { includeAll, date } = req.query;
+    console.log(
+      `[DEBUG] Fetching clients for staff ID: ${staffId}, date: ${
+        date || "today"
+      }`
+    );
 
     if (!mongoose.Types.ObjectId.isValid(staffId)) {
-      console.error(`[DEBUG] Invalid staff ID format: ${staffId}`);
       return res.status(400).json({
         message: "Invalid staff ID format",
         details: `Provided ID ${staffId} is not a valid MongoDB ObjectId`,
@@ -185,55 +188,107 @@ export const getAssignedClients = async (req: Request, res: Response) => {
 
     const staff = await Staff.findById(staffId);
     if (!staff) {
-      console.error(`[DEBUG] Staff not found for ID: ${staffId}`);
       return res.status(404).json({
         message: "Staff member not found",
         details: `No staff record exists for ID ${staffId}`,
       });
     }
 
-    console.log(
-      `[DEBUG] Staff ${staffId} has ${
-        staff.assignedClients.length
-      } assigned clients: ${JSON.stringify(staff.assignedClients)}`
-    );
+    // Get current staff session to determine shift
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const staffSession = await StaffSession.findOne({
+      staffId: new mongoose.Types.ObjectId(staffId),
+      date: today,
+    });
+
+    console.log(`[DEBUG] Staff ${staffId} session for today:`, staffSession);
 
     if (!staff.assignedClients || staff.assignedClients.length === 0) {
-      console.log(`[DEBUG] No clients assigned to staff ${staffId}`);
       return res.json([]);
     }
 
+    // Get all assigned clients WITHOUT using their stored delivery status
     const assignedClients = await Client.find({
       _id: { $in: staff.assignedClients },
     })
       .sort({ name: 1 })
-      .select(
-        "_id name number location timeShift quantity pricePerLitre deliveryStatus"
-      )
+      .select("_id name number location timeShift quantity pricePerLitre") // Removed deliveryStatus from selection
       .lean();
 
     console.log(
       `[DEBUG] Found ${assignedClients.length} total clients for staff ${staffId}`
     );
 
-    // Only filter by shift if includeAll is not set to true
-    if (includeAll !== "true") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const staffSession = await StaffSession.findOne({ staffId, date: today });
+    // Parse requested date or use today
+    let requestDate = today;
+    if (date) {
+      requestDate = new Date(date as string);
+      requestDate.setHours(0, 0, 0, 0);
+    }
 
-      if (staffSession?.shift) {
-        const filteredClients = assignedClients.filter(
-          (client) => client.timeShift === staffSession.shift
-        );
-        console.log(
-          `[DEBUG] Filtered to ${filteredClients.length} clients for ${staffSession.shift} shift`
-        );
-        return res.json(filteredClients);
+    const endOfRequestDate = new Date(requestDate);
+    endOfRequestDate.setHours(23, 59, 59, 999);
+
+    console.log(
+      `[DEBUG] Fetching delivery status for date: ${requestDate.toISOString()}`
+    );
+
+    // Get all daily deliveries for this staff and date
+    const dailyDeliveries = await DailyDelivery.find({
+      staffId,
+      date: {
+        $gte: requestDate,
+        $lte: endOfRequestDate,
+      },
+    }).lean();
+
+    console.log(
+      `[DEBUG] Found ${
+        dailyDeliveries.length
+      } daily delivery records for ${requestDate.toDateString()}`
+    );
+
+    // Create a map of client IDs to their daily delivery status
+    const clientDeliveryStatusMap = new Map();
+    dailyDeliveries.forEach((delivery) => {
+      clientDeliveryStatusMap.set(delivery.clientId.toString(), {
+        deliveryStatus: delivery.deliveryStatus,
+        notes: delivery.notes,
+        quantity: delivery.quantity,
+      });
+    });
+
+    // Update client objects with their daily delivery status
+    for (const client of assignedClients) {
+      const dailyStatus = clientDeliveryStatusMap.get(client._id.toString());
+      if (dailyStatus) {
+        // If we have a daily record, use that status
+        client.deliveryStatus = dailyStatus.deliveryStatus;
+        client.deliveryNotes = dailyStatus.notes;
+        client.dailyQuantity = dailyStatus.quantity;
+      } else {
+        // If no daily record exists for this date, ALWAYS set status to Pending
+        client.deliveryStatus = "Pending";
+        client.deliveryNotes = undefined;
       }
     }
 
-    // Return all assigned clients if no shift is selected or includeAll=true
+    console.log(
+      `[DEBUG] Updated all client statuses based on daily deliveries`
+    );
+
+    // Only return clients matching current shift unless includeAll is true
+    if (includeAll !== "true" && staffSession?.shift) {
+      const filteredClients = assignedClients.filter(
+        (client) => client.timeShift === staffSession.shift
+      );
+      console.log(
+        `[DEBUG] Filtered to ${filteredClients.length} clients for ${staffSession.shift} shift`
+      );
+      return res.json(filteredClients);
+    }
+
     res.json(assignedClients);
   } catch (error) {
     console.error("Error in getAssignedClients:", error);
@@ -651,17 +706,18 @@ export const selectShift = async (req: Request, res: Response) => {
     const { id: staffId } = req.params;
     const { shift } = req.body;
 
+    console.log(
+      `[SERVER DEBUG] selectShift called with staffId: ${staffId}, shift: ${shift}`
+    );
+
     if (!mongoose.Types.ObjectId.isValid(staffId)) {
       return res.status(400).json({ message: "Invalid staff ID format" });
     }
 
-    // Get valid shifts from database settings
-    const { getSetting } = await import("../models/Settings");
-    const validShifts = await getSetting("shifts");
-
-    if (!shift || !validShifts.includes(shift)) {
+    // Basic validation - only allow AM or PM
+    if (!shift || !["AM", "PM"].includes(shift)) {
       return res.status(400).json({
-        message: `Valid shift (${validShifts.join(" or ")}) is required`,
+        message: "Valid shift (AM or PM) is required",
       });
     }
 
@@ -671,30 +727,75 @@ export const selectShift = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Staff member not found" });
     }
 
-    // Set the date to today with time set to midnight
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Create or update the staff session for today
-    const staffSession = await StaffSession.findOneAndUpdate(
-      { staffId, date: today },
-      { staffId, shift, date: today },
-      { upsert: true, new: true }
+    console.log(
+      `[SERVER DEBUG] Found staff with ID ${staffId}, name: ${staff.name}`
     );
+
+    // Get today's date in a consistent format
+    const now = new Date();
+    const todayStr = now.toISOString().split("T")[0]; // YYYY-MM-DD format
+
+    // Create a date object at 00:00:00 for today
+    const today = new Date(todayStr);
 
     console.log(
-      `Staff ${staffId} selected ${shift} shift for ${
-        today.toISOString().split("T")[0]
-      }`
+      `[SERVER DEBUG] Creating session for date: ${today.toISOString()}`
     );
 
-    res.json({
-      message: `${shift} shift selected successfully`,
-      staffSession,
-    });
+    // Delete any existing sessions for today (to avoid duplicates)
+    const startOfDay = new Date(today);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    try {
+      const deleteResult = await StaffSession.deleteMany({
+        staffId: new mongoose.Types.ObjectId(staffId),
+        date: {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        },
+      });
+
+      console.log(
+        `[SERVER DEBUG] Deleted ${deleteResult.deletedCount} existing sessions`
+      );
+    } catch (deleteErr) {
+      console.error(
+        "[SERVER ERROR] Error deleting existing sessions:",
+        deleteErr
+      );
+      // Continue anyway - this is not critical
+    }
+
+    // Create new session for today
+    try {
+      const staffSession = new StaffSession({
+        staffId: new mongoose.Types.ObjectId(staffId),
+        shift,
+        date: today,
+      });
+
+      await staffSession.save();
+      console.log(
+        `[SERVER DEBUG] Created new session with ID: ${staffSession._id}`
+      );
+
+      // Return success response
+      return res.status(200).json({
+        message: `${shift} shift selected successfully`,
+        staffSession,
+      });
+    } catch (sessionErr) {
+      console.error("[SERVER ERROR] Error creating new session:", sessionErr);
+      return res.status(500).json({
+        message: "Failed to create shift session",
+        error:
+          sessionErr instanceof Error ? sessionErr.message : "Unknown error",
+      });
+    }
   } catch (error) {
-    console.error("Error selecting shift:", error);
-    res.status(500).json({
+    console.error("[SERVER ERROR] Error in selectShift:", error);
+    return res.status(500).json({
       message: "Error selecting shift",
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -709,17 +810,47 @@ export const getSessionByDate = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid staff ID format" });
     }
 
-    // Parse date or use today
+    // Parse the provided date string correctly
     let sessionDate;
-    if (date) {
-      sessionDate = new Date(date);
-    } else {
-      sessionDate = new Date();
-    }
-    sessionDate.setHours(0, 0, 0, 0);
+    try {
+      // CRITICAL FIX: Properly convert string date to Date object
+      if (date) {
+        console.log(`[DEBUG] Parsing date string: ${date}`);
+        sessionDate = new Date(date);
+      } else {
+        sessionDate = new Date();
+      }
 
-    const session = await StaffSession.findOne({ staffId, date: sessionDate });
+      // Don't modify the sessionDate - keep it as is
+      console.log(`[DEBUG] Parsed sessionDate: ${sessionDate.toISOString()}`);
+    } catch (dateError) {
+      console.error("Error parsing date:", dateError, date);
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+
+    // Find session using date range accounting for timezone issues
+    const startOfDay = new Date(sessionDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(sessionDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    console.log(
+      `[DEBUG] Looking for session with date range: ${startOfDay.toISOString()} to ${endOfDay.toISOString()} for staff ${staffId}`
+    );
+
+    const session = await StaffSession.findOne({
+      staffId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    });
+
     if (!session) {
+      console.log(
+        `[DEBUG] No session found for staff ${staffId} on ${sessionDate.toISOString()}`
+      );
       return res.status(404).json({
         message: "No shift selected for this date",
         staffId,
@@ -727,6 +858,11 @@ export const getSessionByDate = async (req: Request, res: Response) => {
       });
     }
 
+    console.log(
+      `[DEBUG] Found session: ${session._id}, shift: ${
+        session.shift
+      }, date: ${session.date.toISOString()}`
+    );
     res.json(session);
   } catch (error) {
     console.error("Error getting staff session:", error);
@@ -787,9 +923,10 @@ export const markClientDailyDelivered = async (req: Request, res: Response) => {
 
     // Record the delivery for today
     console.log(
-      `[DEBUG] Marking client ${clientId} as delivered with status: "Delivered"`
+      `[DEBUG] Marking client ${clientId} as delivered for date: ${today.toISOString()}`
     );
 
+    // Create or update today's delivery record
     const dailyDelivery = await DailyDelivery.findOneAndUpdate(
       {
         clientId,
@@ -817,10 +954,7 @@ export const markClientDailyDelivered = async (req: Request, res: Response) => {
       }
     );
 
-    // Update the client's delivery status field
-    client.deliveryStatus = deliveredStatus;
-
-    // Add to client's delivery history
+    // Add to client's delivery history, but DON'T update the client's deliveryStatus field
     client.deliveryHistory.push({
       date: today,
       status: deliveredStatus,
@@ -929,11 +1063,7 @@ export const markClientDailyUndelivered = async (
       }
     );
 
-    // Update the client's delivery status field
-    client.deliveryStatus = notDeliveredStatus;
-    client.deliveryNotes = reason;
-
-    // Add to client's delivery history
+    // Add to client's delivery history, but DON'T update client.deliveryStatus
     client.deliveryHistory.push({
       date: today,
       status: notDeliveredStatus,
@@ -965,31 +1095,31 @@ export const updateAssignedClients = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid staff ID format" });
     }
 
-    if (!shift || !["AM", "PM"].includes(shift)) {
+    // Validate shift
+    if (!["AM", "PM"].includes(shift)) {
       return res
         .status(400)
-        .json({ message: "Valid shift (AM or PM) is required" });
+        .json({ message: "Invalid shift value. Must be AM or PM" });
     }
 
-    // Verify staff exists
     const staff = await Staff.findById(staffId);
     if (!staff) {
-      return res.status(404).json({ message: "Staff member not found" });
+      return res.status(404).json({ message: "Staff not found" });
     }
 
-    // Get all clients assigned to this staff member
+    // Get all assigned clients
     const allAssignedClients = await Client.find({
       _id: { $in: staff.assignedClients },
-    }).lean();
+    });
 
-    // Filter clients based on the shift
+    // Filter clients based on shift
     const filteredClientIds = allAssignedClients
       .filter((client) => client.timeShift === shift)
-      .map((client) =>
-        mongoose.Types.ObjectId.createFromHexString(client._id.toString())
+      .map(
+        (client) => new mongoose.Types.ObjectId((client as any)._id.toString())
       );
 
-    // Update the staff's assignedClients field with only clients matching the shift
+    // Update staff's assignedClients with filtered list
     staff.assignedClients = filteredClientIds;
     await staff.save();
 
@@ -997,9 +1127,15 @@ export const updateAssignedClients = async (req: Request, res: Response) => {
       `Updated assigned clients for staff ${staffId} with ${shift} shift. Now has ${filteredClientIds.length} clients.`
     );
 
+    // Return filtered clients
+    const updatedClients = await Client.find({
+      _id: { $in: filteredClientIds },
+    });
+
     res.json({
       message: `Successfully updated assigned clients based on ${shift} shift`,
-      clientCount: filteredClientIds.length,
+      clients: updatedClients,
+      count: filteredClientIds.length,
     });
   } catch (error) {
     console.error("Error updating assigned clients:", error);
