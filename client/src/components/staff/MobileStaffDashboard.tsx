@@ -237,34 +237,114 @@ const MobileStaffDashboard: React.FC = () => {
     }
   };
 
-  const handlePrintBill = (client: Client) => {
+  const handlePrintBill = async (client: Client) => {
     try {
+      console.log("[CLIENT DEBUG] Starting bill generation for:", client.name);
+
+      // Fetch full client data to ensure we have delivery history
+      console.log(
+        "[CLIENT DEBUG] Fetching complete client data for:",
+        client._id
+      );
+      let clientWithHistory = client;
+
+      try {
+        const response = await clients.getById(client._id);
+        clientWithHistory = response.data;
+        console.log("[CLIENT DEBUG] Successfully fetched complete client data");
+      } catch (fetchError) {
+        console.error("[CLIENT DEBUG] Error fetching client data:", fetchError);
+        setNotification({
+          message: "Failed to get client delivery history. Please try again.",
+          type: "error",
+        });
+        return;
+      }
+
+      if (
+        !clientWithHistory.deliveryHistory ||
+        !Array.isArray(clientWithHistory.deliveryHistory) ||
+        clientWithHistory.deliveryHistory.length === 0
+      ) {
+        console.error(
+          "[CLIENT DEBUG] No delivery history available for client"
+        );
+        setNotification({
+          message: "No delivery history available for this client",
+          type: "error",
+        });
+        return;
+      }
+
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      // Filter and map delivery history to billing entries
-      const entries = client.deliveryHistory
+      console.log("[CLIENT DEBUG] Filtering delivery history");
+
+      // Create a map of all days in the billing period
+      const allDaysInPeriod = new Map();
+
+      // Generate all dates from start of month to today
+      let currentDate = new Date(startOfMonth);
+      while (currentDate <= today) {
+        const dateString = currentDate.toISOString().split("T")[0];
+        allDaysInPeriod.set(dateString, {
+          date: new Date(currentDate),
+          notTaken: true, // Initially mark all as not taken
+        });
+        currentDate = new Date(currentDate);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // Update the map with actual delivery data
+      clientWithHistory.deliveryHistory
         .filter((record) => {
           const recordDate = new Date(record.date);
           return recordDate >= startOfMonth && recordDate <= today;
         })
-        .map((record) => ({
-          date: new Date(record.date),
-          quantity: record.quantity,
-          pricePerLiter: client.pricePerLitre,
-          subtotal: record.quantity * client.pricePerLitre,
-        }));
+        .forEach((record) => {
+          const dateString = new Date(record.date).toISOString().split("T")[0];
 
-      // Calculate total amount
+          // If the delivery was made (status is "Delivered"), update the map
+          if (record.status === "Delivered") {
+            allDaysInPeriod.set(dateString, {
+              date: new Date(record.date),
+              quantity: record.quantity,
+              pricePerLiter: clientWithHistory.pricePerLitre,
+              subtotal: record.quantity * clientWithHistory.pricePerLitre,
+              notTaken: false,
+            });
+          } else {
+            // If delivery was marked as "Not Delivered", keep the notTaken flag true
+            allDaysInPeriod.set(dateString, {
+              date: new Date(record.date),
+              notTaken: true,
+            });
+          }
+        });
+
+      // Convert the map to an array for bill entries
+      const entries = Array.from(allDaysInPeriod.values());
+
+      if (entries.length === 0) {
+        console.error("[CLIENT DEBUG] No entries available for this month");
+        setNotification({
+          message: "No entries found for this month",
+          type: "error",
+        });
+        return;
+      }
+
+      // Calculate total amount (only from entries where milk was delivered)
       const totalAmount = entries.reduce(
-        (sum, entry) => sum + entry.subtotal,
+        (sum, entry) => sum + (entry.notTaken ? 0 : entry.subtotal || 0),
         0
       );
 
       const billData: BillData = {
-        clientName: client.name,
-        clientLocation: client.location,
-        clientPhone: client.number,
+        clientName: clientWithHistory.name,
+        clientLocation: clientWithHistory.location,
+        clientPhone: clientWithHistory.number || "N/A",
         billingPeriod: {
           start: startOfMonth,
           end: today,
@@ -273,23 +353,90 @@ const MobileStaffDashboard: React.FC = () => {
         totalAmount,
       };
 
-      console.log("[CLIENT DEBUG] Generating bill for client:", client.name);
+      console.log(
+        "[CLIENT DEBUG] Generating bill for client:",
+        clientWithHistory.name
+      );
       console.log("[CLIENT DEBUG] Total bill amount:", totalAmount);
 
-      // Generate and download PDF
+      // Generate PDF
       const doc = generateBillPDF(billData);
-      doc.save(
-        `invoice-${client.name}-${today.toISOString().split("T")[0]}.pdf`
-      );
+      const fileName = `invoice-${clientWithHistory.name}-${
+        today.toISOString().split("T")[0]
+      }.pdf`;
 
-      setNotification({
-        message: `Bill generated for ${client.name}`,
-        type: "success",
-      });
-    } catch (error) {
+      // For mobile compatibility, use blob and object URL approach
+      try {
+        const pdfBlob = doc.output("blob");
+        const blobUrl = URL.createObjectURL(pdfBlob);
+
+        console.log("[CLIENT DEBUG] Created blob URL for PDF");
+
+        // Create a link element and trigger download
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = fileName;
+        link.setAttribute("target", "_blank");
+        document.body.appendChild(link);
+
+        // Show notification before download is triggered
+        setNotification({
+          message: `Preparing bill for ${clientWithHistory.name}. Download should start automatically.`,
+          type: "info",
+        });
+
+        // Slight delay to ensure notification is shown before download dialog
+        setTimeout(() => {
+          console.log("[CLIENT DEBUG] Triggering download click");
+          link.click();
+          document.body.removeChild(link);
+
+          // Clean up the blob URL
+          setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+
+            setNotification({
+              message: `Bill generated for ${clientWithHistory.name}`,
+              type: "success",
+            });
+          }, 100);
+        }, 300);
+      } catch (blobError) {
+        console.error("[CLIENT DEBUG] Blob approach failed:", blobError);
+
+        // Fallback to data URL approach if blob approach fails
+        try {
+          const pdfData = doc.output("datauristring");
+          const newWindow = window.open();
+          if (newWindow) {
+            newWindow.document.write(
+              `<iframe width='100%' height='100%' src='${pdfData}'></iframe>`
+            );
+            setNotification({
+              message: `Bill opened in new tab for ${clientWithHistory.name}`,
+              type: "success",
+            });
+          } else {
+            throw new Error("Popup blocked");
+          }
+        } catch (dataUrlError) {
+          console.error(
+            "[CLIENT DEBUG] Data URI approach failed:",
+            dataUrlError
+          );
+          throw new Error(
+            "Could not open PDF: " +
+              (dataUrlError instanceof Error
+                ? dataUrlError.message
+                : "Unknown error")
+          );
+        }
+      }
+    } catch (error: any) {
       console.error("[CLIENT DEBUG] Error generating bill:", error);
       setNotification({
-        message: "Failed to generate bill. Please try again.",
+        message:
+          "Failed to generate bill: " + (error.message || "Unknown error"),
         type: "error",
       });
     }

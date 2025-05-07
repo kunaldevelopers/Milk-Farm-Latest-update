@@ -22,6 +22,7 @@ export interface BillData {
     quantity: number;
     pricePerLiter: number;
     subtotal: number;
+    notTaken?: boolean; // Added notTaken flag to indicate days when milk was not taken
   }>;
   totalAmount: number;
 }
@@ -34,9 +35,11 @@ export const generateBillPDF = (data: BillData): jsPDF => {
   doc.rect(0, 0, 210, 40, "F");
   doc.setTextColor(THEME_COLORS.milkWhite);
   doc.setFontSize(24);
-  doc.text("Milk Farm CRM Invoice", 105, 20, { align: "center" });
+  doc.text("Apni Gaushala ka Doodh Bill", 105, 20, { align: "center" });
   doc.setFontSize(14);
-  doc.text("Milk Farm", 105, 30, { align: "center" });
+  doc.text("Taza Doodh, Har Pal Vishwas ke Saath", 105, 30, {
+    align: "center",
+  });
 
   // Client Details
   doc.setTextColor(THEME_COLORS.slateGray);
@@ -49,7 +52,9 @@ export const generateBillPDF = (data: BillData): jsPDF => {
   // Billing Period
   doc.text("Billing Period:", 20, 95);
   doc.text(
-    `${data.billingPeriod.start.toLocaleDateString()} to ${data.billingPeriod.end.toLocaleDateString()}`,
+    `${formatDateToDDMMYYYY(
+      data.billingPeriod.start
+    )} to ${formatDateToDDMMYYYY(data.billingPeriod.end)}`,
     20,
     105
   );
@@ -60,7 +65,8 @@ export const generateBillPDF = (data: BillData): jsPDF => {
   doc.rect(20, startY, 170, 10, "F");
   doc.setTextColor(THEME_COLORS.slateGray);
 
-  const headers = ["Date", "Quantity (L)", "Price/L (₹)", "Subtotal (₹)"];
+  // Update table headers to remove symbols
+  const headers = ["Date", "Quantity (L)", "Price/L", "Subtotal"];
   headers.forEach((header, index) => {
     doc.text(header, 30 + index * 45, startY + 8);
   });
@@ -68,10 +74,20 @@ export const generateBillPDF = (data: BillData): jsPDF => {
   // Table Content
   let y = startY + 15;
   data.entries.forEach((entry) => {
-    doc.text(entry.date.toLocaleDateString(), 30, y);
-    doc.text(entry.quantity.toString(), 75, y);
-    doc.text(entry.pricePerLiter.toString(), 120, y);
-    doc.text(entry.subtotal.toFixed(2), 165, y);
+    doc.text(formatDateToDDMMYYYY(entry.date), 30, y);
+
+    if (entry.notTaken) {
+      // If milk was not taken this day, show "Not Taken" message
+      doc.text("-", 75, y); // For quantity
+      doc.text("-", 120, y); // For price
+      doc.text("Not Taken", 165, y); // Instead of subtotal
+    } else {
+      // Normal entry with milk delivery
+      doc.text(entry.quantity.toString(), 75, y);
+      doc.text(entry.pricePerLiter.toString(), 120, y);
+      doc.text(entry.subtotal.toFixed(2), 165, y);
+    }
+
     y += 10;
   });
 
@@ -79,7 +95,7 @@ export const generateBillPDF = (data: BillData): jsPDF => {
   y += 10;
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(`Total Amount: ₹${data.totalAmount.toFixed(2)}`, 165, y, {
+  doc.text(`Total Amount: ${data.totalAmount.toFixed(2)}`, 165, y, {
     align: "right",
   });
 
@@ -105,8 +121,16 @@ export const generateBillPDF = (data: BillData): jsPDF => {
   doc.setTextColor(THEME_COLORS.pastureGreen);
   doc.setFont("helvetica", "bold");
   doc.textWithLink("Enegix Web Solutions", 85, 290, {
-    url: "https://enegixwebsolutions.com/",
+    url: "https://enegixwebsolutions.com/contact/",
   });
 
   return doc;
 };
+
+// Helper function to format dates as DD/MM/YYYY
+function formatDateToDDMMYYYY(date: Date): string {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
